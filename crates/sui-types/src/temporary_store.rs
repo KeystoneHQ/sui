@@ -18,9 +18,9 @@ use crate::committee::EpochId;
 use crate::effects::{TransactionEffects, TransactionEvents};
 use crate::execution_status::ExecutionStatus;
 use crate::storage::ObjectStore;
-use crate::sui_system_state::{
-    get_sui_system_state, get_sui_system_state_wrapper, AdvanceEpochParams, SuiSystemState,
-};
+// use crate::sui_system_state::{
+//     get_sui_system_state, get_sui_system_state_wrapper, AdvanceEpochParams, SuiSystemState,
+// };
 use crate::type_resolver::LayoutResolver;
 use crate::{
     base_types::{
@@ -59,46 +59,46 @@ pub struct InnerTemporaryStore {
     pub runtime_read_objects: BTreeMap<ObjectID, Object>,
 }
 
-impl InnerTemporaryStore {
-    /// Return the written object value with the given ID (if any)
-    pub fn get_written_object(&self, id: &ObjectID) -> Option<&Object> {
-        self.written.get(id).map(|o| &o.1)
-    }
+// impl InnerTemporaryStore {
+//     /// Return the written object value with the given ID (if any)
+//     pub fn get_written_object(&self, id: &ObjectID) -> Option<&Object> {
+//         self.written.get(id).map(|o| &o.1)
+//     }
 
-    /// Return the set of object ID's created during the current tx
-    pub fn created(&self) -> Vec<ObjectID> {
-        self.written
-            .values()
-            .filter_map(|(obj_ref, _, w)| {
-                if *w == WriteKind::Create {
-                    Some(obj_ref.0)
-                } else {
-                    None
-                }
-            })
-            .collect()
-    }
+//     /// Return the set of object ID's created during the current tx
+//     pub fn created(&self) -> Vec<ObjectID> {
+//         self.written
+//             .values()
+//             .filter_map(|(obj_ref, _, w)| {
+//                 if *w == WriteKind::Create {
+//                     Some(obj_ref.0)
+//                 } else {
+//                     None
+//                 }
+//             })
+//             .collect()
+//     }
 
-    /// Get the written objects owned by `address`
-    pub fn get_written_objects_owned_by(&self, address: &SuiAddress) -> Vec<ObjectID> {
-        self.written
-            .values()
-            .filter_map(|(_, o, _)| {
-                if o.get_single_owner()
-                    .map_or(false, |owner| &owner == address)
-                {
-                    Some(o.id())
-                } else {
-                    None
-                }
-            })
-            .collect()
-    }
+//     /// Get the written objects owned by `address`
+//     pub fn get_written_objects_owned_by(&self, address: &SuiAddress) -> Vec<ObjectID> {
+//         self.written
+//             .values()
+//             .filter_map(|(_, o, _)| {
+//                 if o.get_single_owner()
+//                     .map_or(false, |owner| &owner == address)
+//                 {
+//                     Some(o.id())
+//                 } else {
+//                     None
+//                 }
+//             })
+//             .collect()
+//     }
 
-    pub fn get_sui_system_state_object(&self) -> SuiResult<SuiSystemState> {
-        get_sui_system_state(&self.written)
-    }
-}
+//     pub fn get_sui_system_state_object(&self) -> SuiResult<SuiSystemState> {
+//         get_sui_system_state(&self.written)
+//     }
+// }
 
 pub struct TemporaryModuleResolver<'a, R> {
     temp_store: &'a InnerTemporaryStore,
@@ -1219,18 +1219,18 @@ impl<S: ObjectStore> TemporaryStore<S> {
 // Charge gas current - end
 //==============================================================================
 
-impl<S: ObjectStore> TemporaryStore<S> {
-    pub fn advance_epoch_safe_mode(
-        &mut self,
-        params: &AdvanceEpochParams,
-        protocol_config: &ProtocolConfig,
-    ) {
-        let wrapper = get_sui_system_state_wrapper(&self.store)
-            .expect("System state wrapper object must exist");
-        let new_object = wrapper.advance_epoch_safe_mode(params, &self.store, protocol_config);
-        self.write_object(new_object, WriteKind::Mutate);
-    }
-}
+// impl<S: ObjectStore> TemporaryStore<S> {
+//     pub fn advance_epoch_safe_mode(
+//         &mut self,
+//         params: &AdvanceEpochParams,
+//         protocol_config: &ProtocolConfig,
+//     ) {
+//         let wrapper = get_sui_system_state_wrapper(&self.store)
+//             .expect("System state wrapper object must exist");
+//         let new_object = wrapper.advance_epoch_safe_mode(params, &self.store, protocol_config);
+//         self.write_object(new_object, WriteKind::Mutate);
+//     }
+// }
 
 impl<S: GetModule + ObjectStore + BackingPackageStore> TemporaryStore<S> {
     fn get_input_sui(
