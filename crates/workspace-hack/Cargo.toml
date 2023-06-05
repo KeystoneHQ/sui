@@ -326,7 +326,7 @@ matchers = { version = "0.1", default-features = false }
 matchit-ca01ad9e24f5d932 = { package = "matchit", version = "0.7" }
 matchit-d8f496e17d97b5cb = { package = "matchit", version = "0.5" }
 md-5 = { version = "0.9" }
-memchr = { version = "2", features = ["use_std"] }
+memchr = { version = "2", default-features = false, features = ["rustc-dep-of-std"] }
 memoffset-ca01ad9e24f5d932 = { package = "memoffset", version = "0.7" }
 merlin = { version = "3" }
 migrations_internals = { version = "2", default-features = false }
@@ -525,8 +525,8 @@ secp256k1 = { version = "0.27", features = ["bitcoin_hashes", "global-context", 
 secp256k1-sys = { version = "0.8", default-features = false, features = ["recovery", "std"] }
 semver-dff4ba8e3ae991db = { package = "semver", version = "1", features = ["serde"] }
 send_wrapper = { version = "0.4", default-features = false }
-serde-c38e5c1d305a1b54 = { package = "serde", version = "0.8" }
-serde-dff4ba8e3ae991db = { package = "serde", version = "1", features = ["alloc", "derive", "rc"] }
+serde-c38e5c1d305a1b54 = { package = "serde", version = "0.8", default-features = false, features = ["alloc"] }
+serde-dff4ba8e3ae991db = { package = "serde", version = "1", default-features = false, features = ["alloc", "derive", "rc"] }
 serde-hjson = { version = "0.9", default-features = false }
 serde-name = { version = "0.2", default-features = false }
 serde-reflection = { version = "0.3", default-features = false }
@@ -938,8 +938,8 @@ futures-task = { version = "0.3", default-features = false, features = ["std", "
 futures-timer = { version = "3", default-features = false, features = ["wasm-bindgen"] }
 futures-util = { version = "0.3", default-features = false, features = ["async-await-macro", "bilock", "channel", "io", "sink", "unstable"] }
 generic-array = { version = "0.14", default-features = false, features = ["more_lengths", "serde", "zeroize"] }
-getrandom-6f8ce4dd05d13bba = { package = "getrandom", version = "0.2", default-features = false, features = ["std"] }
-getrandom-c65f7effa3be6d31 = { package = "getrandom", version = "0.1", default-features = false, features = ["std"] }
+getrandom-6f8ce4dd05d13bba = { package = "getrandom", version = "0.2", default-features = false, features = ["rustc-dep-of-std"] }
+getrandom-c65f7effa3be6d31 = { package = "getrandom", version = "0.1", default-features = false, features = ["rustc-dep-of-std"] }
 ghash = { version = "0.5", default-features = false }
 gimli = { version = "0.27", default-features = false, features = ["read"] }
 git-version = { version = "0.3", default-features = false }
@@ -1042,7 +1042,7 @@ matchers = { version = "0.1", default-features = false }
 matchit-ca01ad9e24f5d932 = { package = "matchit", version = "0.7" }
 matchit-d8f496e17d97b5cb = { package = "matchit", version = "0.5" }
 md-5 = { version = "0.9" }
-memchr = { version = "2", features = ["use_std"] }
+memchr = { version = "2", default-features = false, features = ["rustc-dep-of-std"] }
 memoffset-ca01ad9e24f5d932 = { package = "memoffset", version = "0.7" }
 merlin = { version = "3" }
 migrations_internals = { version = "2", default-features = false }
@@ -1281,8 +1281,8 @@ semver-a6292c17cd707f01 = { package = "semver", version = "0.11" }
 semver-dff4ba8e3ae991db = { package = "semver", version = "1", features = ["serde"] }
 semver-parser = { version = "0.10", default-features = false }
 send_wrapper = { version = "0.4", default-features = false }
-serde-c38e5c1d305a1b54 = { package = "serde", version = "0.8" }
-serde-dff4ba8e3ae991db = { package = "serde", version = "1", features = ["alloc", "derive", "rc"] }
+serde-c38e5c1d305a1b54 = { package = "serde", version = "0.8", default-features = false, features = ["alloc"] }
+serde-dff4ba8e3ae991db = { package = "serde", version = "1", default-features = false, features = ["alloc", "derive", "rc"] }
 serde-hjson = { version = "0.9", default-features = false }
 serde-name = { version = "0.2", default-features = false }
 serde-reflection = { version = "0.3", default-features = false }
