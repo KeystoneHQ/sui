@@ -6,7 +6,12 @@
     rust_2018_idioms,
     rust_2021_compatibility
 )]
+// #![no_std]
 
+extern crate alloc;
+
+use alloc::format;
+use alloc::string::String;
 use base_types::{SequenceNumber, SuiAddress};
 use move_binary_format::binary_views::BinaryIndexedView;
 use move_binary_format::file_format::{AbilitySet, SignatureToken};
@@ -17,7 +22,7 @@ use object::OBJECT_START_VERSION;
 
 use base_types::ObjectID;
 
-pub use mysten_network::multiaddr;
+// pub use mysten_network::multiaddr;
 
 use crate::base_types::{RESOLVED_ASCII_STR, RESOLVED_UTF8_STR};
 use crate::{base_types::RESOLVED_STD_OPTION, id::RESOLVED_SUI_ID};
@@ -62,18 +67,18 @@ pub mod signature;
 pub mod storage;
 pub mod sui_serde;
 // pub mod sui_system_state;
-pub mod temporary_store;
+// pub mod temporary_store;
 pub mod transaction;
 pub mod type_resolver;
 // pub mod versioned;
-pub mod zk_login_authenticator;
-pub mod zk_login_util;
+// pub mod zk_login_authenticator;
+// pub mod zk_login_util;
 
 pub mod epoch_data;
 
-#[cfg(feature = "test-utils")]
-#[path = "./unit_tests/utils.rs"]
-pub mod utils;
+// #[cfg(feature = "test-utils")]
+// #[path = "./unit_tests/utils.rs"]
+// pub mod utils;
 
 /// 0x1-- account address where Move stdlib modules are stored
 /// Same as the ObjectID

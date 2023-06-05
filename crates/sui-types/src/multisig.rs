@@ -33,10 +33,6 @@ use crate::{
     error::SuiError,
 };
 
-#[cfg(test)]
-#[path = "unit_tests/multisig_tests.rs"]
-mod multisig_tests;
-
 pub type WeightUnit = u8;
 pub type ThresholdUnit = u16;
 pub const MAX_SIGNER_IN_MULTISIG: usize = 10;

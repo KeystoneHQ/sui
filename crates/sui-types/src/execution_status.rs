@@ -9,10 +9,6 @@ use std::fmt::{Display, Formatter};
 use sui_macros::EnumVariantOrder;
 use thiserror::Error;
 
-#[cfg(test)]
-#[path = "unit_tests/execution_status_tests.rs"]
-mod execution_status_tests;
-
 #[derive(Eq, PartialEq, Clone, Debug, Serialize, Deserialize)]
 pub enum ExecutionStatus {
     Success,

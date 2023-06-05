@@ -9,21 +9,20 @@ use move_core_types::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::object::{MoveObject, Owner};
-use crate::storage::WriteKind;
-use crate::temporary_store::TemporaryStore;
+// use crate::object::{MoveObject, Owner};
+// use crate::storage::WriteKind;
+// use crate::temporary_store::TemporaryStore;
 use crate::{
     balance::{Balance, Supply},
     error::ExecutionError,
     object::{Data, Object},
 };
-use crate::{base_types::TransactionDigest, error::SuiError};
+use crate::{error::SuiError};
 use crate::{
-    base_types::{MoveObjectType, SequenceNumber},
     error::ExecutionErrorKind,
 };
 use crate::{
-    base_types::{ObjectID, SuiAddress},
+    base_types::{ObjectID},
     id::UID,
     SUI_FRAMEWORK_ADDRESS,
 };
@@ -166,20 +165,20 @@ impl TreasuryCap {
     }
 }
 
-pub fn transfer_coin<S>(
-    temporary_store: &mut TemporaryStore<S>,
-    coin: &Coin,
-    recipient: SuiAddress,
-    coin_type: MoveObjectType,
-    previous_transaction: TransactionDigest,
-) {
-    let new_coin = Object::new_move(
-        MoveObject::new_coin(coin_type, SequenceNumber::new(), *coin.id(), coin.value()),
-        Owner::AddressOwner(recipient),
-        previous_transaction,
-    );
-    temporary_store.write_object(new_coin, WriteKind::Create);
-}
+// pub fn transfer_coin<S>(
+//     temporary_store: &mut TemporaryStore<S>,
+//     coin: &Coin,
+//     recipient: SuiAddress,
+//     coin_type: MoveObjectType,
+//     previous_transaction: TransactionDigest,
+// ) {
+//     let new_coin = Object::new_move(
+//         MoveObject::new_coin(coin_type, SequenceNumber::new(), *coin.id(), coin.value()),
+//         Owner::AddressOwner(recipient),
+//         previous_transaction,
+//     );
+//     temporary_store.write_object(new_coin, WriteKind::Create);
+// }
 
 // Rust version of the Move sui::coin::CoinMetadata type
 #[derive(Debug, Serialize, Deserialize, Clone, JsonSchema, Eq, PartialEq)]

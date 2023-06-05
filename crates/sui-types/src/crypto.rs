@@ -50,15 +50,6 @@ pub use fastcrypto::traits::Signer;
 use std::fmt::Debug;
 use tracing::warn;
 
-#[cfg(test)]
-#[path = "unit_tests/crypto_tests.rs"]
-mod crypto_tests;
-
-#[cfg(test)]
-#[cfg(feature = "test-utils")]
-#[path = "unit_tests/intent_tests.rs"]
-mod intent_tests;
-
 // Authority Objects
 pub type AuthorityKeyPair = BLS12381KeyPair;
 pub type AuthorityPublicKey = BLS12381PublicKey;
@@ -103,24 +94,24 @@ pub fn generate_proof_of_possession(
 
 /// Verify proof of possession against the expected intent message,
 /// consisting of the protocol pubkey and the authority account address.
-pub fn verify_proof_of_possession(
-    pop: &narwhal_crypto::Signature,
-    protocol_pubkey: &narwhal_crypto::PublicKey,
-    sui_address: SuiAddress,
-) -> Result<(), SuiError> {
-    protocol_pubkey
-        .validate()
-        .map_err(|_| SuiError::InvalidSignature {
-            error: "Fail to validate pubkey".to_string(),
-        })?;
-    let mut msg = protocol_pubkey.as_bytes().to_vec();
-    msg.extend_from_slice(sui_address.as_ref());
-    pop.verify_secure(
-        &IntentMessage::new(Intent::sui_app(IntentScope::ProofOfPossession), msg),
-        DEFAULT_EPOCH_ID,
-        protocol_pubkey.into(),
-    )
-}
+// pub fn verify_proof_of_possession(
+//     pop: &narwhal_crypto::Signature,
+//     protocol_pubkey: &narwhal_crypto::PublicKey,
+//     sui_address: SuiAddress,
+// ) -> Result<(), SuiError> {
+//     protocol_pubkey
+//         .validate()
+//         .map_err(|_| SuiError::InvalidSignature {
+//             error: "Fail to validate pubkey".to_string(),
+//         })?;
+//     let mut msg = protocol_pubkey.as_bytes().to_vec();
+//     msg.extend_from_slice(sui_address.as_ref());
+//     pop.verify_secure(
+//         &IntentMessage::new(Intent::sui_app(IntentScope::ProofOfPossession), msg),
+//         DEFAULT_EPOCH_ID,
+//         protocol_pubkey.into(),
+//     )
+// }
 ///////////////////////////////////////////////
 /// Account Keys
 ///

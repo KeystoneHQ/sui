@@ -5,7 +5,7 @@
 use super::base_types::*;
 use crate::crypto::{random_committee_key_pairs_of_size, AuthorityKeyPair, AuthorityPublicKey};
 use crate::error::{SuiError, SuiResult};
-use crate::multiaddr::Multiaddr;
+// use crate::multiaddr::Multiaddr;
 use fastcrypto::traits::KeyPair;
 use rand::rngs::ThreadRng;
 use rand::seq::SliceRandom;
@@ -312,33 +312,33 @@ impl Display for Committee {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct NetworkMetadata {
-    pub network_address: Multiaddr,
-    pub narwhal_primary_address: Multiaddr,
-}
+// #[derive(Clone, Debug, Serialize, Deserialize)]
+// pub struct NetworkMetadata {
+//     pub network_address: Multiaddr,
+//     pub narwhal_primary_address: Multiaddr,
+// }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct CommitteeWithNetworkMetadata {
-    pub committee: Committee,
-    pub network_metadata: BTreeMap<AuthorityName, NetworkMetadata>,
-}
+// #[derive(Clone, Debug, Serialize, Deserialize)]
+// pub struct CommitteeWithNetworkMetadata {
+//     pub committee: Committee,
+//     pub network_metadata: BTreeMap<AuthorityName, NetworkMetadata>,
+// }
 
-impl CommitteeWithNetworkMetadata {
-    pub fn epoch(&self) -> EpochId {
-        self.committee.epoch()
-    }
-}
+// impl CommitteeWithNetworkMetadata {
+//     pub fn epoch(&self) -> EpochId {
+//         self.committee.epoch()
+//     }
+// }
 
-impl Display for CommitteeWithNetworkMetadata {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "CommitteeWithNetworkMetadata (committee={}, network_metadata={:?})",
-            self.committee, self.network_metadata
-        )
-    }
-}
+// impl Display for CommitteeWithNetworkMetadata {
+//     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+//         write!(
+//             f,
+//             "CommitteeWithNetworkMetadata (committee={}, network_metadata={:?})",
+//             self.committee, self.network_metadata
+//         )
+//     }
+// }
 
 #[cfg(test)]
 mod test {
