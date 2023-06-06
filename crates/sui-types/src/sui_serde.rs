@@ -1,12 +1,12 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-use std::fmt;
-use std::fmt::Write;
-use std::fmt::{Debug, Display, Formatter};
-use std::marker::PhantomData;
-use std::ops::Deref;
-use std::str::FromStr;
+use alloc::fmt;
+use alloc::fmt::Write;
+use alloc::fmt::{Debug, Display, Formatter};
+use core::marker::PhantomData;
+use core::ops::Deref;
+use alloc::str::FromStr;
 
 use fastcrypto::encoding::Hex;
 use move_core_types::account_address::AccountAddress;

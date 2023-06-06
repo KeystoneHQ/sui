@@ -29,10 +29,13 @@ use move_core_types::identifier::IdentStr;
 use move_core_types::{identifier::Identifier, language_storage::TypeTag};
 use serde::{Deserialize, Serialize};
 use shared_crypto::intent::{Intent, IntentMessage, IntentScope};
-use std::fmt::Write;
-use std::fmt::{Debug, Display, Formatter};
-use std::{
-    collections::{BTreeMap, BTreeSet, HashSet},
+use alloc::fmt::Write;
+use alloc::fmt::{Debug, Display, Formatter};
+use alloc::{
+    collections::{BTreeMap, BTreeSet},
+};
+use hashbrown::HashSet;
+use core::{
     hash::Hash,
     iter,
 };
@@ -595,7 +598,7 @@ fn write_sep<T: Display>(
     f: &mut Formatter<'_>,
     items: impl IntoIterator<Item = T>,
     sep: &str,
-) -> std::fmt::Result {
+) -> alloc::fmt::Result {
     let mut xs = items.into_iter().peekable();
     while let Some(x) = xs.next() {
         if xs.peek().is_some() {
@@ -687,7 +690,7 @@ impl ProgrammableTransaction {
 }
 
 impl Display for Argument {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> alloc::fmt::Result {
         match self {
             Argument::GasCoin => write!(f, "GasCoin"),
             Argument::Input(i) => write!(f, "Input({i})"),
@@ -698,7 +701,7 @@ impl Display for Argument {
 }
 
 impl Display for ProgrammableMoveCall {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> alloc::fmt::Result {
         let ProgrammableMoveCall {
             package,
             module,
@@ -719,7 +722,7 @@ impl Display for ProgrammableMoveCall {
 }
 
 impl Display for Command {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> alloc::fmt::Result {
         match self {
             Command::MoveCall(p) => {
                 write!(f, "MoveCall({p})")
@@ -767,7 +770,7 @@ impl Display for Command {
 }
 
 impl Display for ProgrammableTransaction {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> alloc::fmt::Result {
         let ProgrammableTransaction { inputs, commands } = self;
         writeln!(f, "Inputs: {inputs:?}")?;
         writeln!(f, "Commands: [")?;
@@ -928,7 +931,7 @@ impl TransactionKind {
 }
 
 impl Display for TransactionKind {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> alloc::fmt::Result {
         let mut writer = String::new();
         match &self {
             Self::ChangeEpoch(e) => {
@@ -2141,7 +2144,7 @@ impl InputObjects {
 }
 
 impl Display for CertifiedTransaction {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> alloc::fmt::Result {
         let mut writer = String::new();
         writeln!(writer, "Transaction Hash: {:?}", self.digest())?;
         writeln!(

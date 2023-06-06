@@ -11,6 +11,7 @@ anyhow = { version = "1.0.64", features = ["backtrace"] }
 # bcs = {git = "https://github.com/KeystoneHQ/bcs.git", tag = "0.1.0"}
 bcs = "0.1.4"
 core2 = { version = "0.3", default_features = false, features = ["alloc"] }
+hashbrown = "0.14.0"
 byteorder = "1.4.3"
 itertools = "0.10.5"
 once_cell = { version = "1.16", default-features = false, features = ["alloc"] }

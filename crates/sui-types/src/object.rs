@@ -1,9 +1,9 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-use std::convert::TryFrom;
-use std::fmt::{Debug, Display, Formatter};
-use std::mem::size_of;
+use core::convert::TryFrom;
+use alloc::fmt::{Debug, Display, Formatter};
+use core::mem::size_of;
 
 use move_binary_format::CompiledModule;
 use move_bytecode_utils::layout::TypeLayoutBuilder;
@@ -553,7 +553,7 @@ impl PartialEq<ObjectID> for Owner {
 }
 
 impl Display for Owner {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> alloc::fmt::Result {
         match self {
             Self::AddressOwner(address) => {
                 write!(f, "Account Address ( {} )", address)
@@ -1059,7 +1059,7 @@ impl Default for ObjectFormatOptions {
 }
 
 impl Display for ObjectRead {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> alloc::fmt::Result {
         match self {
             Self::Deleted(oref) => {
                 write!(f, "ObjectRead::Deleted ({:?})", oref)
@@ -1122,7 +1122,7 @@ impl PastObjectRead {
 }
 
 impl Display for PastObjectRead {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> alloc::fmt::Result {
         match self {
             Self::ObjectDeleted(oref) => {
                 write!(f, "PastObjectRead::ObjectDeleted ({:?})", oref)

@@ -33,7 +33,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use serde_with::serde_as;
 use serde_with::Bytes;
-use std::collections::{BTreeMap, BTreeSet};
+use alloc::collections::{BTreeMap, BTreeSet};
 use sui_protocol_config::ProtocolConfig;
 
 // TODO: robust MovePackage tests

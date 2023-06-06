@@ -13,8 +13,8 @@ use move_core_types::{
     vm_status::StatusCode,
 };
 use once_cell::sync::Lazy;
-use std::ops::AddAssign;
-use std::ops::{Add, Deref, Mul};
+use core::ops::AddAssign;
+use core::ops::{Add, Deref, Mul};
 use sui_cost_tables::bytecode_tables::{INITIAL_COST_SCHEDULE, ZERO_COST_SCHEDULE};
 use sui_cost_tables::units_types::CostTable;
 use sui_cost_tables::{bytecode_tables::GasStatus, units_types::GasUnit};
@@ -169,8 +169,8 @@ pub struct SuiCostTable {
     pub execution_cost_table: CostTable,
 }
 
-impl std::fmt::Debug for SuiCostTable {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl alloc::fmt::Debug for SuiCostTable {
+    fn fmt(&self, f: &mut alloc::fmt::Formatter<'_>) -> alloc::fmt::Result {
         // TODO: dump the fields.
         write!(f, "SuiCostTable(...)")
     }
@@ -406,7 +406,7 @@ impl SuiGasStatusAPI for SuiGasStatus {
     fn gas_budget(&self) -> u64 {
         // MUSTFIX: Properly compute gas budget
         let max_gas_unit_price =
-            std::cmp::max(self.computation_gas_unit_price, self.storage_gas_unit_price);
+            core::cmp::max(self.computation_gas_unit_price, self.storage_gas_unit_price);
         self.init_budget.mul(max_gas_unit_price).into()
     }
 

@@ -13,7 +13,7 @@ use fastcrypto::{
 use schemars::JsonSchema;
 use serde::Serialize;
 use shared_crypto::intent::IntentMessage;
-use std::hash::Hash;
+use core::hash::Hash;
 #[derive(Default, Debug, Clone)]
 pub struct AuxVerifyData {
     pub epoch: Option<EpochId>,

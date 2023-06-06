@@ -9,7 +9,7 @@ use crate::{
     object::{Object, Owner},
 };
 use move_core_types::vm_status::StatusCode;
-use std::iter;
+use core::iter;
 use sui_cost_tables::bytecode_tables::{
     initial_cost_schedule_v1, initial_cost_schedule_v2, initial_cost_schedule_v3, GasStatus,
     ZERO_COST_SCHEDULE,
@@ -116,8 +116,8 @@ pub struct SuiCostTable {
     computation_bucket: Vec<ComputationBucket>,
 }
 
-impl std::fmt::Debug for SuiCostTable {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl alloc::fmt::Debug for SuiCostTable {
+    fn fmt(&self, f: &mut alloc::fmt::Formatter<'_>) -> alloc::fmt::Result {
         // TODO: dump the fields.
         write!(f, "SuiCostTable(...)")
     }
