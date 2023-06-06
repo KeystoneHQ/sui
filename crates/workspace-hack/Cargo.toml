@@ -27,12 +27,13 @@ aho-corasick-dff4ba8e3ae991db = { package = "aho-corasick", version = "1" }
 aliasable = { version = "0.1" }
 alloc-no-stdlib = { version = "2", default-features = false }
 alloc-stdlib = { version = "0.2", default-features = false }
+allocator-api2 = { version = "0.2", default-features = false, features = ["alloc"] }
 anemo = { git = "https://github.com/mystenlabs/anemo.git", rev = "0f0ae8d8f222820a20b586088ea7a2941478a159", default-features = false }
 anemo-cli = { git = "https://github.com/mystenlabs/anemo.git", rev = "0f0ae8d8f222820a20b586088ea7a2941478a159", default-features = false }
 anemo-tower = { git = "https://github.com/mystenlabs/anemo.git", rev = "0f0ae8d8f222820a20b586088ea7a2941478a159", default-features = false }
 anes = { version = "0.1" }
 ansi_term = { version = "0.12", default-features = false }
-anyhow = { version = "1", features = ["backtrace"] }
+anyhow = { version = "1", default-features= false, features = ["backtrace"] }
 arbitrary = { version = "1", default-features = false, features = ["derive_arbitrary"] }
 arc-swap = { version = "1", default-features = false, features = ["serde"] }
 ark-bls12-381 = { version = "0.4" }
@@ -139,7 +140,8 @@ console-subscriber = { version = "0.1" }
 const-oid = { version = "0.9", default-features = false }
 const-str = { version = "0.5" }
 constant_time_eq = { version = "0.2", default-features = false }
-core2 = { version = "0.4", default-features = false, features = ["alloc"] }
+core2-468e82937335b1c9 = { package = "core2", version = "0.3", default-features = false, features = ["alloc"] }
+core2-9fbad63c4bcf4a8f = { package = "core2", version = "0.4", default-features = false, features = ["alloc"] }
 crc32fast = { version = "1" }
 criterion = { version = "0.4", features = ["async_tokio", "html_reports"] }
 criterion-plot = { version = "0.5", default-features = false }
@@ -234,8 +236,8 @@ futures-task = { version = "0.3", default-features = false, features = ["std", "
 futures-timer = { version = "3", default-features = false, features = ["wasm-bindgen"] }
 futures-util = { version = "0.3", default-features = false, features = ["async-await-macro", "bilock", "channel", "io", "sink", "unstable"] }
 generic-array = { version = "0.14", default-features = false, features = ["more_lengths", "serde", "zeroize"] }
-getrandom-6f8ce4dd05d13bba = { package = "getrandom", version = "0.2", default-features = false, features = ["std"] }
-getrandom-c65f7effa3be6d31 = { package = "getrandom", version = "0.1", default-features = false, features = ["std"] }
+getrandom-6f8ce4dd05d13bba = { package = "getrandom", version = "0.2", default-features = false, features = [] }
+getrandom-c65f7effa3be6d31 = { package = "getrandom", version = "0.1", default-features = false, features = [] }
 ghash = { version = "0.5", default-features = false }
 gimli = { version = "0.27", default-features = false, features = ["read"] }
 git-version = { version = "0.3", default-features = false }
@@ -254,6 +256,7 @@ guppy-workspace-hack = { version = "0.1", default-features = false }
 h2 = { version = "0.3", default-features = false }
 hakari = { version = "0.13", default-features = false, features = ["cli-support"] }
 half = { version = "1", default-features = false }
+hashbrown-582f2526e08bb6a0 = { package = "hashbrown", version = "0.14" }
 hashbrown-594e8ee84c453af0 = { package = "hashbrown", version = "0.13", features = ["raw"] }
 hashbrown-5ef9efb8ec2df382 = { package = "hashbrown", version = "0.12", features = ["raw"] }
 hdrhistogram = { version = "7" }
@@ -693,13 +696,14 @@ aho-corasick-dff4ba8e3ae991db = { package = "aho-corasick", version = "1" }
 aliasable = { version = "0.1" }
 alloc-no-stdlib = { version = "2", default-features = false }
 alloc-stdlib = { version = "0.2", default-features = false }
+allocator-api2 = { version = "0.2", default-features = false, features = ["alloc"] }
 anemo = { git = "https://github.com/mystenlabs/anemo.git", rev = "0f0ae8d8f222820a20b586088ea7a2941478a159", default-features = false }
 anemo-build = { git = "https://github.com/mystenlabs/anemo.git", rev = "0f0ae8d8f222820a20b586088ea7a2941478a159", default-features = false }
 anemo-cli = { git = "https://github.com/mystenlabs/anemo.git", rev = "0f0ae8d8f222820a20b586088ea7a2941478a159", default-features = false }
 anemo-tower = { git = "https://github.com/mystenlabs/anemo.git", rev = "0f0ae8d8f222820a20b586088ea7a2941478a159", default-features = false }
 anes = { version = "0.1" }
 ansi_term = { version = "0.12", default-features = false }
-anyhow = { version = "1", features = ["backtrace"] }
+anyhow = { version = "1", default-features= false, features = ["backtrace"] }
 arbitrary = { version = "1", default-features = false, features = ["derive_arbitrary"] }
 arc-swap = { version = "1", default-features = false, features = ["serde"] }
 ark-bls12-381 = { version = "0.4" }
@@ -827,7 +831,8 @@ const-str = { version = "0.5" }
 constant_time_eq = { version = "0.2", default-features = false }
 convert_case-3b31131e45eafb45 = { package = "convert_case", version = "0.6", default-features = false }
 convert_case-9fbad63c4bcf4a8f = { package = "convert_case", version = "0.4", default-features = false }
-core2 = { version = "0.4", default-features = false, features = ["alloc"] }
+core2-468e82937335b1c9 = { package = "core2", version = "0.3", default-features = false, features = ["alloc"] }
+core2-9fbad63c4bcf4a8f = { package = "core2", version = "0.4", default-features = false, features = ["alloc"] }
 crc32fast = { version = "1" }
 criterion = { version = "0.4", features = ["async_tokio", "html_reports"] }
 criterion-plot = { version = "0.5", default-features = false }
@@ -938,8 +943,8 @@ futures-task = { version = "0.3", default-features = false, features = ["std", "
 futures-timer = { version = "3", default-features = false, features = ["wasm-bindgen"] }
 futures-util = { version = "0.3", default-features = false, features = ["async-await-macro", "bilock", "channel", "io", "sink", "unstable"] }
 generic-array = { version = "0.14", default-features = false, features = ["more_lengths", "serde", "zeroize"] }
-getrandom-6f8ce4dd05d13bba = { package = "getrandom", version = "0.2", default-features = false, features = ["std"] }
-getrandom-c65f7effa3be6d31 = { package = "getrandom", version = "0.1", default-features = false, features = ["std"] }
+getrandom-6f8ce4dd05d13bba = { package = "getrandom", version = "0.2", default-features = false, features = [] }
+getrandom-c65f7effa3be6d31 = { package = "getrandom", version = "0.1", default-features = false, features = [] }
 ghash = { version = "0.5", default-features = false }
 gimli = { version = "0.27", default-features = false, features = ["read"] }
 git-version = { version = "0.3", default-features = false }
@@ -959,6 +964,7 @@ guppy-workspace-hack = { version = "0.1", default-features = false }
 h2 = { version = "0.3", default-features = false }
 hakari = { version = "0.13", default-features = false, features = ["cli-support"] }
 half = { version = "1", default-features = false }
+hashbrown-582f2526e08bb6a0 = { package = "hashbrown", version = "0.14" }
 hashbrown-594e8ee84c453af0 = { package = "hashbrown", version = "0.13", features = ["raw"] }
 hashbrown-5ef9efb8ec2df382 = { package = "hashbrown", version = "0.12", features = ["raw"] }
 hdrhistogram = { version = "7" }
@@ -1042,7 +1048,7 @@ matchers = { version = "0.1", default-features = false }
 matchit-ca01ad9e24f5d932 = { package = "matchit", version = "0.7" }
 matchit-d8f496e17d97b5cb = { package = "matchit", version = "0.5" }
 md-5 = { version = "0.9" }
-memchr = { version = "2", features = ["use_std"] }
+memchr = { version = "2", default-features = false }
 memoffset-ca01ad9e24f5d932 = { package = "memoffset", version = "0.7" }
 merlin = { version = "3" }
 migrations_internals = { version = "2", default-features = false }
@@ -1281,8 +1287,8 @@ semver-a6292c17cd707f01 = { package = "semver", version = "0.11" }
 semver-dff4ba8e3ae991db = { package = "semver", version = "1", features = ["serde"] }
 semver-parser = { version = "0.10", default-features = false }
 send_wrapper = { version = "0.4", default-features = false }
-serde-c38e5c1d305a1b54 = { package = "serde", version = "0.8" }
-serde-dff4ba8e3ae991db = { package = "serde", version = "1", features = ["alloc", "derive", "rc"] }
+serde-c38e5c1d305a1b54 = { package = "serde", version = "0.8", default-features = false }
+serde-dff4ba8e3ae991db = { package = "serde", version = "1", default-features = false, features = ["alloc", "derive", "rc"] }
 serde-hjson = { version = "0.9", default-features = false }
 serde-name = { version = "0.2", default-features = false }
 serde-reflection = { version = "0.3", default-features = false }
