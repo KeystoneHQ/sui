@@ -15,7 +15,7 @@ use crate::execution_status::ExecutionStatus;
 use crate::gas::GasCostSummary;
 use crate::message_envelope::{Envelope, Message, VerifiedEnvelope};
 use crate::object::Owner;
-use crate::transaction::{Transaction, TransactionDataAPI, VersionedProtocolMessage};
+use crate::transaction::VersionedProtocolMessage;
 use core::fmt::{Display, Formatter};
 use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};
@@ -166,27 +166,6 @@ impl TransactionEffects {
         let deps_size = 1_000 + APPROX_SIZE_OF_TX_DIGEST * num_deps;
 
         fixed_sizes + approx_change_entry_size + deps_size
-    }
-}
-
-// testing helpers.
-impl TransactionEffects {
-    pub fn new_with_tx(tx: &Transaction) -> TransactionEffects {
-        Self::new_with_tx_and_gas(
-            tx,
-            (
-                random_object_ref(),
-                Owner::AddressOwner(tx.data().intent_message().value.sender()),
-            ),
-        )
-    }
-
-    pub fn new_with_tx_and_gas(tx: &Transaction, gas_object: (ObjectRef, Owner)) -> Self {
-        TransactionEffects::V1(TransactionEffectsV1 {
-            transaction_digest: *tx.digest(),
-            gas_object,
-            ..Default::default()
-        })
     }
 }
 

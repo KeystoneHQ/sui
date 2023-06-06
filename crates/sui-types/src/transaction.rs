@@ -4,31 +4,19 @@
 
 use super::{base_types::*, error::*};
 use crate::committee::{EpochId, ProtocolVersion};
-use crate::crypto::{
-    default_hash,
-    DefaultHash, Ed25519SuiSignature, EmptySignInfo, Signature, Signer, SuiSignatureInner,
-    ToFromBytes,
-};
-use crate::digests::SenderSignedDataDigest;
-use crate::message_envelope::{
-    Envelope, Message, TrustedEnvelope, VerifiedEnvelope,
-};
 use crate::messages_consensus::ConsensusCommitPrologue;
 use crate::object::{MoveObject, Object, Owner};
 use crate::programmable_transaction_builder::ProgrammableTransactionBuilder;
-use crate::signature::GenericSignature;
 use crate::{
     SUI_CLOCK_OBJECT_ID, SUI_CLOCK_OBJECT_SHARED_VERSION, SUI_FRAMEWORK_PACKAGE_ID,
     SUI_SYSTEM_STATE_OBJECT_ID, SUI_SYSTEM_STATE_OBJECT_SHARED_VERSION,
 };
 use enum_dispatch::enum_dispatch;
-use fastcrypto::{encoding::Base64, hash::HashFunction};
 use itertools::Either;
 use move_core_types::ident_str;
 use move_core_types::identifier::IdentStr;
 use move_core_types::{identifier::Identifier, language_storage::TypeTag};
 use serde::{Deserialize, Serialize};
-use shared_crypto::intent::{Intent, IntentMessage, IntentScope};
 use alloc::fmt::Write;
 use alloc::fmt::{Debug, Display, Formatter};
 use alloc::{
@@ -41,8 +29,6 @@ use core::{
 };
 use strum::IntoStaticStr;
 use sui_protocol_config::{ProtocolConfig, SupportedProtocolVersions};
-use tap::Pipe;
-use tracing::trace;
 
 // TODO: The following constants appear to be very large.
 // We should revisit them.
@@ -1025,23 +1011,6 @@ pub struct TransactionDataV1 {
 }
 
 impl TransactionData {
-    fn new_system_transaction(kind: TransactionKind) -> Self {
-        // assert transaction kind if a system transaction
-        assert!(kind.is_system_tx());
-        let sender = SuiAddress::default();
-        TransactionData::V1(TransactionDataV1 {
-            kind,
-            sender,
-            gas_data: GasData {
-                price: GAS_PRICE_FOR_SYSTEM_TX,
-                owner: sender,
-                payment: vec![(ObjectID::ZERO, SequenceNumber::default(), ObjectDigest::MIN)],
-                budget: 0,
-            },
-            expiration: TransactionExpiration::None,
-        })
-    }
-
     pub fn new(
         kind: TransactionKind,
         sender: SuiAddress,
@@ -1604,378 +1573,6 @@ impl TransactionDataAPI for TransactionDataV1 {
 
 impl TransactionDataV1 {}
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
-pub struct SenderSignedData(Vec<SenderSignedTransaction>);
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
-pub struct SenderSignedTransaction {
-    pub intent_message: IntentMessage<TransactionData>,
-    /// A list of signatures signed by all transaction participants.
-    /// 1. non participant signature must not be present.
-    /// 2. signature order does not matter.
-    pub tx_signatures: Vec<GenericSignature>,
-}
-
-impl SenderSignedData {
-    pub fn new(
-        tx_data: TransactionData,
-        intent: Intent,
-        tx_signatures: Vec<GenericSignature>,
-    ) -> Self {
-        Self(vec![SenderSignedTransaction {
-            intent_message: IntentMessage::new(intent, tx_data),
-            tx_signatures,
-        }])
-    }
-
-    pub fn new_from_sender_signature(
-        tx_data: TransactionData,
-        intent: Intent,
-        tx_signature: Signature,
-    ) -> Self {
-        Self(vec![SenderSignedTransaction {
-            intent_message: IntentMessage::new(intent, tx_data),
-            tx_signatures: vec![tx_signature.into()],
-        }])
-    }
-
-    pub fn inner(&self) -> &SenderSignedTransaction {
-        // assert is safe - SenderSignedTransaction::verify ensures length is 1.
-        assert_eq!(self.0.len(), 1);
-        self.0
-            .get(0)
-            .expect("SenderSignedData must contain exactly one transaction")
-    }
-
-    pub fn inner_mut(&mut self) -> &mut SenderSignedTransaction {
-        // assert is safe - SenderSignedTransaction::verify ensures length is 1.
-        assert_eq!(self.0.len(), 1);
-        self.0
-            .get_mut(0)
-            .expect("SenderSignedData must contain exactly one transaction")
-    }
-
-    // This function does not check validity of the signature
-    // or perform any de-dup checks.
-    pub fn add_signature(&mut self, new_signature: Signature) {
-        self.inner_mut().tx_signatures.push(new_signature.into());
-    }
-
-    fn get_signer_sig_mapping(&self) -> SuiResult<BTreeMap<SuiAddress, &GenericSignature>> {
-        let mut mapping = BTreeMap::new();
-        for sig in &self.inner().tx_signatures {
-            let address = sig.try_into()?;
-            mapping.insert(address, sig);
-        }
-        Ok(mapping)
-    }
-
-    pub fn transaction_data(&self) -> &TransactionData {
-        &self.intent_message().value
-    }
-
-    pub fn intent_message(&self) -> &IntentMessage<TransactionData> {
-        &self.inner().intent_message
-    }
-
-    pub fn tx_signatures(&self) -> &[GenericSignature] {
-        &self.inner().tx_signatures
-    }
-
-    // pub fn has_zklogin_sig(&self) -> bool {
-    //     self.tx_signatures().iter().any(|sig| sig.is_zklogin())
-    // }
-
-    #[cfg(test)]
-    pub fn intent_message_mut_for_testing(&mut self) -> &mut IntentMessage<TransactionData> {
-        &mut self.inner_mut().intent_message
-    }
-
-    // used cross-crate, so cannot be #[cfg(test)]
-    pub fn tx_signatures_mut_for_testing(&mut self) -> &mut Vec<GenericSignature> {
-        &mut self.inner_mut().tx_signatures
-    }
-
-    pub fn full_message_digest(&self) -> SenderSignedDataDigest {
-        let mut digest = DefaultHash::default();
-        bcs::serialize_into(&mut digest, self).expect("serialization should not fail");
-        let hash = digest.finalize();
-        SenderSignedDataDigest::new(hash.into())
-    }
-}
-
-impl VersionedProtocolMessage for SenderSignedData {
-    fn message_version(&self) -> Option<u64> {
-        self.transaction_data().message_version()
-    }
-
-    fn check_version_supported(&self, protocol_config: &ProtocolConfig) -> SuiResult {
-        self.transaction_data()
-            .check_version_supported(protocol_config)?;
-
-        // This code does nothing right now. Its purpose is to cause a compiler error when a
-        // new signature type is added.
-        //
-        // When adding a new signature type, check if current_protocol_version
-        // predates support for the new type. If it does, return
-        // SuiError::WrongMessageVersion
-        for sig in &self.inner().tx_signatures {
-            match sig {
-                GenericSignature::Signature(_)
-                | GenericSignature::MultiSig(_)
-                // | GenericSignature::ZkLoginAuthenticator(_)
-                => (),
-            }
-        }
-
-        Ok(())
-    }
-}
-
-impl Message for SenderSignedData {
-    type DigestType = TransactionDigest;
-    const SCOPE: IntentScope = IntentScope::SenderSignedTransaction;
-
-    fn digest(&self) -> Self::DigestType {
-        TransactionDigest::new(default_hash(&self.intent_message().value))
-    }
-
-    fn verify(&self, _sig_epoch: Option<EpochId>) -> SuiResult {
-        fp_ensure!(
-            self.0.len() == 1,
-            SuiError::UserInputError {
-                error: UserInputError::Unsupported(
-                    "SenderSignedData must contain exactly one transaction".to_string()
-                )
-            }
-        );
-        if self.intent_message().value.is_system_tx() {
-            return Ok(());
-        }
-
-        // Verify signatures. Steps are ordered in asc complexity order to minimize abuse.
-        let signers = self.intent_message().value.signers();
-        // Signature number needs to match
-        fp_ensure!(
-            self.inner().tx_signatures.len() == signers.len(),
-            SuiError::SignerSignatureNumberMismatch {
-                actual: self.inner().tx_signatures.len(),
-                expected: signers.len()
-            }
-        );
-        // All required signers need to be sign.
-        let present_sigs = self.get_signer_sig_mapping()?;
-        for s in signers {
-            if !present_sigs.contains_key(&s) {
-                return Err(SuiError::SignerSignatureAbsent {
-                    signer: s.to_string(),
-                });
-            }
-        }
-
-        // Verify all present signatures.
-        // for (signer, signature) in present_sigs {
-        //     signature.verify_secure_generic(
-        //         self.intent_message(),
-        //         signer,
-        //         AuxVerifyData::new(
-        //             sig_epoch,
-        //             Some(get_google_jwk_bytes().read().unwrap().clone()),
-        //         ),
-        //     )?;
-        // }
-        Ok(())
-    }
-}
-
-impl<S> Envelope<SenderSignedData, S> {
-    pub fn sender_address(&self) -> SuiAddress {
-        self.data().intent_message().value.sender()
-    }
-
-    pub fn gas(&self) -> &[ObjectRef] {
-        self.data().intent_message().value.gas()
-    }
-
-    pub fn contains_shared_object(&self) -> bool {
-        self.shared_input_objects().next().is_some()
-    }
-
-    pub fn shared_input_objects(&self) -> impl Iterator<Item = SharedInputObject> + '_ {
-        self.data()
-            .inner()
-            .intent_message
-            .value
-            .shared_input_objects()
-            .into_iter()
-    }
-
-    pub fn is_system_tx(&self) -> bool {
-        self.data().intent_message().value.is_system_tx()
-    }
-
-    pub fn is_sponsored_tx(&self) -> bool {
-        self.data().intent_message().value.is_sponsored_tx()
-    }
-}
-
-impl Transaction {
-    pub fn from_data_and_signer(
-        data: TransactionData,
-        intent: Intent,
-        signers: Vec<&dyn Signer<Signature>>,
-    ) -> Self {
-        let intent_msg = IntentMessage::new(intent.clone(), data.clone());
-        let mut signatures = Vec::with_capacity(signers.len());
-        for signer in signers {
-            signatures.push(Signature::new_secure(&intent_msg, signer));
-        }
-        Self::from_data(data, intent, signatures)
-    }
-
-    // TODO: Rename this function and above to make it clearer.
-    pub fn from_data(data: TransactionData, intent: Intent, signatures: Vec<Signature>) -> Self {
-        Self::from_generic_sig_data(
-            data,
-            intent,
-            signatures.into_iter().map(|s| s.into()).collect(),
-        )
-    }
-
-    pub fn signature_from_signer(
-        data: TransactionData,
-        intent: Intent,
-        signer: &dyn Signer<Signature>,
-    ) -> Signature {
-        let intent_msg = IntentMessage::new(intent, data);
-        Signature::new_secure(&intent_msg, signer)
-    }
-
-    pub fn from_generic_sig_data(
-        data: TransactionData,
-        intent: Intent,
-        signatures: Vec<GenericSignature>,
-    ) -> Self {
-        Self::new(SenderSignedData::new(data, intent, signatures))
-    }
-
-    /// Returns the Base64 encoded tx_bytes
-    /// and a list of Base64 encoded [enum GenericSignature].
-    pub fn to_tx_bytes_and_signatures(&self) -> (Base64, Vec<Base64>) {
-        (
-            Base64::from_bytes(&bcs::to_bytes(&self.data().intent_message().value).unwrap()),
-            self.data()
-                .inner()
-                .tx_signatures
-                .iter()
-                .map(|s| Base64::from_bytes(s.as_ref()))
-                .collect(),
-        )
-    }
-}
-
-impl VerifiedTransaction {
-    pub fn new_change_epoch(
-        next_epoch: EpochId,
-        protocol_version: ProtocolVersion,
-        storage_charge: u64,
-        computation_charge: u64,
-        storage_rebate: u64,
-        non_refundable_storage_fee: u64,
-        epoch_start_timestamp_ms: u64,
-        system_packages: Vec<(SequenceNumber, Vec<Vec<u8>>, Vec<ObjectID>)>,
-    ) -> Self {
-        ChangeEpoch {
-            epoch: next_epoch,
-            protocol_version,
-            storage_charge,
-            computation_charge,
-            storage_rebate,
-            non_refundable_storage_fee,
-            epoch_start_timestamp_ms,
-            system_packages,
-        }
-        .pipe(TransactionKind::ChangeEpoch)
-        .pipe(Self::new_system_transaction)
-    }
-
-    pub fn new_genesis_transaction(objects: Vec<GenesisObject>) -> Self {
-        GenesisTransaction { objects }
-            .pipe(TransactionKind::Genesis)
-            .pipe(Self::new_system_transaction)
-    }
-
-    // pub fn new_consensus_commit_prologue(
-    //     epoch: u64,
-    //     round: u64,
-    //     commit_timestamp_ms: CheckpointTimestamp,
-    // ) -> Self {
-    //     ConsensusCommitPrologue {
-    //         epoch,
-    //         round,
-    //         commit_timestamp_ms,
-    //     }
-    //     .pipe(TransactionKind::ConsensusCommitPrologue)
-    //     .pipe(Self::new_system_transaction)
-    // }
-
-    fn new_system_transaction(system_transaction: TransactionKind) -> Self {
-        system_transaction
-            .pipe(TransactionData::new_system_transaction)
-            .pipe(|data| {
-                SenderSignedData::new_from_sender_signature(
-                    data,
-                    Intent::sui_transaction(),
-                    Ed25519SuiSignature::from_bytes(&[0; Ed25519SuiSignature::LENGTH])
-                        .unwrap()
-                        .into(),
-                )
-            })
-            .pipe(Transaction::new)
-            .pipe(Self::new_from_verified)
-    }
-}
-
-// impl VerifiedSignedTransaction {
-//     /// Use signing key to create a signed object.
-//     pub fn new(
-//         epoch: EpochId,
-//         transaction: VerifiedTransaction,
-//         authority: AuthorityName,
-//         secret: &dyn Signer<AuthoritySignature>,
-//     ) -> Self {
-//         Self::new_from_verified(SignedTransaction::new(
-//             epoch,
-//             transaction.into_inner().into_data(),
-//             secret,
-//             authority,
-//         ))
-//     }
-// }
-
-/// A transaction that is signed by a sender but not yet by an authority.
-pub type Transaction = Envelope<SenderSignedData, EmptySignInfo>;
-pub type VerifiedTransaction = VerifiedEnvelope<SenderSignedData, EmptySignInfo>;
-pub type TrustedTransaction = TrustedEnvelope<SenderSignedData, EmptySignInfo>;
-
-/// A transaction that is signed by a sender and also by an authority.
-// pub type SignedTransaction = Envelope<SenderSignedData, AuthoritySignInfo>;
-// pub type VerifiedSignedTransaction = VerifiedEnvelope<SenderSignedData, AuthoritySignInfo>;
-
-// pub type CertifiedTransaction = Envelope<SenderSignedData, AuthorityStrongQuorumSignInfo>;
-
-// impl CertifiedTransaction {
-//     pub fn certificate_digest(&self) -> CertificateDigest {
-//         let mut digest = DefaultHash::default();
-//         bcs::serialize_into(&mut digest, self).expect("serialization should not fail");
-//         let hash = digest.finalize();
-//         CertificateDigest::new(hash.into())
-//     }
-// }
-
-// pub type VerifiedCertificate = VerifiedEnvelope<SenderSignedData, AuthorityStrongQuorumSignInfo>;
-// pub type TrustedCertificate = TrustedEnvelope<SenderSignedData, AuthorityStrongQuorumSignInfo>;
-
 pub trait VersionedProtocolMessage {
     /// Return version of message. Some messages depend on their enclosing messages to know the
     /// version number, so not every implementor implements this.
@@ -2073,11 +1670,6 @@ impl InputObjects {
                 InputObjectKind::SharedMoveObject { .. } => None,
             })
             .collect();
-
-        trace!(
-            num_mutable_objects = owned_objects.len(),
-            "Checked locks and found mutable objects"
-        );
 
         owned_objects
     }
