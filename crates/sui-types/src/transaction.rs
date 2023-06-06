@@ -13,7 +13,6 @@ use crate::digests::{CertificateDigest, SenderSignedDataDigest};
 use crate::message_envelope::{
     Envelope, Message, TrustedEnvelope, VerifiedEnvelope,
 };
-use crate::messages_checkpoint::CheckpointTimestamp;
 use crate::messages_consensus::ConsensusCommitPrologue;
 use crate::object::{MoveObject, Object, Owner};
 use crate::programmable_transaction_builder::ProgrammableTransactionBuilder;
@@ -943,9 +942,9 @@ impl Display for TransactionKind {
             Self::Genesis(_) => {
                 writeln!(writer, "Transaction Kind : Genesis")?;
             }
-            Self::ConsensusCommitPrologue(p) => {
+            Self::ConsensusCommitPrologue(_p) => {
                 writeln!(writer, "Transaction Kind : Consensus Commit Prologue")?;
-                writeln!(writer, "Timestamp : {}", p.commit_timestamp_ms)?;
+                // writeln!(writer, "Timestamp : {}", p.commit_timestamp_ms)?;
             }
             Self::ProgrammableTransaction(p) => {
                 writeln!(writer, "Transaction Kind : Programmable")?;
@@ -1738,7 +1737,7 @@ impl Message for SenderSignedData {
         TransactionDigest::new(default_hash(&self.intent_message().value))
     }
 
-    fn verify(&self, sig_epoch: Option<EpochId>) -> SuiResult {
+    fn verify(&self, _sig_epoch: Option<EpochId>) -> SuiResult {
         fp_ensure!(
             self.0.len() == 1,
             SuiError::UserInputError {
@@ -1903,19 +1902,19 @@ impl VerifiedTransaction {
             .pipe(Self::new_system_transaction)
     }
 
-    pub fn new_consensus_commit_prologue(
-        epoch: u64,
-        round: u64,
-        commit_timestamp_ms: CheckpointTimestamp,
-    ) -> Self {
-        ConsensusCommitPrologue {
-            epoch,
-            round,
-            commit_timestamp_ms,
-        }
-        .pipe(TransactionKind::ConsensusCommitPrologue)
-        .pipe(Self::new_system_transaction)
-    }
+    // pub fn new_consensus_commit_prologue(
+    //     epoch: u64,
+    //     round: u64,
+    //     commit_timestamp_ms: CheckpointTimestamp,
+    // ) -> Self {
+    //     ConsensusCommitPrologue {
+    //         epoch,
+    //         round,
+    //         commit_timestamp_ms,
+    //     }
+    //     .pipe(TransactionKind::ConsensusCommitPrologue)
+    //     .pipe(Self::new_system_transaction)
+    // }
 
     fn new_system_transaction(system_transaction: TransactionKind) -> Self {
         system_transaction

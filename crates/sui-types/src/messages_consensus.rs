@@ -4,9 +4,6 @@
 use crate::base_types::{AuthorityName, ObjectRef, TransactionDigest};
 use crate::committee::Committee;
 use crate::error::SuiResult;
-use crate::messages_checkpoint::{
-    CheckpointSequenceNumber, CheckpointSignatureMessage, CheckpointTimestamp,
-};
 use crate::transaction::CertifiedTransaction;
 use byteorder::{BigEndian, ReadBytesExt};
 use serde::{Deserialize, Serialize};
@@ -24,8 +21,6 @@ pub struct ConsensusCommitPrologue {
     pub epoch: u64,
     /// Consensus round of the commit
     pub round: u64,
-    /// Unix timestamp from consensus
-    pub commit_timestamp_ms: CheckpointTimestamp,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -39,7 +34,7 @@ pub struct ConsensusTransaction {
 #[derive(Serialize, Deserialize, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum ConsensusTransactionKey {
     Certificate(TransactionDigest),
-    CheckpointSignature(AuthorityName, CheckpointSequenceNumber),
+    // CheckpointSignature(AuthorityName, CheckpointSequenceNumber),
     EndOfPublish(AuthorityName),
     CapabilityNotification(AuthorityName, u64 /* generation */),
 }
@@ -48,9 +43,9 @@ impl Debug for ConsensusTransactionKey {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Certificate(digest) => write!(f, "Certificate({:?})", digest),
-            Self::CheckpointSignature(name, seq) => {
-                write!(f, "CheckpointSignature({:?}, {:?})", name.concise(), seq)
-            }
+            // Self::CheckpointSignature(name, seq) => {
+            //     write!(f, "CheckpointSignature({:?}, {:?})", name.concise(), seq)
+            // }
             Self::EndOfPublish(name) => write!(f, "EndOfPublish({:?})", name.concise()),
             Self::CapabilityNotification(name, generation) => write!(
                 f,
@@ -121,7 +116,7 @@ impl AuthorityCapabilities {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum ConsensusTransactionKind {
     UserTransaction(Box<CertifiedTransaction>),
-    CheckpointSignature(Box<CheckpointSignatureMessage>),
+    // CheckpointSignature(Box<CheckpointSignatureMessage>),
     EndOfPublish(AuthorityName),
     CapabilityNotification(AuthorityCapabilities),
 }
@@ -142,15 +137,15 @@ impl ConsensusTransaction {
         }
     }
 
-    pub fn new_checkpoint_signature_message(data: CheckpointSignatureMessage) -> Self {
-        let mut hasher = DefaultHasher::new();
-        data.summary.auth_sig().signature.hash(&mut hasher);
-        let tracking_id = hasher.finish().to_le_bytes();
-        Self {
-            tracking_id,
-            kind: ConsensusTransactionKind::CheckpointSignature(Box::new(data)),
-        }
-    }
+    // pub fn new_checkpoint_signature_message(data: CheckpointSignatureMessage) -> Self {
+    //     let mut hasher = DefaultHasher::new();
+    //     data.summary.auth_sig().signature.hash(&mut hasher);
+    //     let tracking_id = hasher.finish().to_le_bytes();
+    //     Self {
+    //         tracking_id,
+    //         kind: ConsensusTransactionKind::CheckpointSignature(Box::new(data)),
+    //     }
+    // }
 
     pub fn new_end_of_publish(authority: AuthorityName) -> Self {
         let mut hasher = DefaultHasher::new();
@@ -183,7 +178,7 @@ impl ConsensusTransaction {
             ConsensusTransactionKind::UserTransaction(certificate) => {
                 certificate.verify_signature(committee)
             }
-            ConsensusTransactionKind::CheckpointSignature(data) => data.verify(committee),
+            // ConsensusTransactionKind::CheckpointSignature(data) => data.verify(committee),
             // EndOfPublish and CapabilityNotification are authenticated in
             // AuthorityPerEpochStore::verify_consensus_transaction
             ConsensusTransactionKind::EndOfPublish(_)
@@ -196,12 +191,12 @@ impl ConsensusTransaction {
             ConsensusTransactionKind::UserTransaction(cert) => {
                 ConsensusTransactionKey::Certificate(*cert.digest())
             }
-            ConsensusTransactionKind::CheckpointSignature(data) => {
-                ConsensusTransactionKey::CheckpointSignature(
-                    data.summary.auth_sig().authority,
-                    data.summary.sequence_number,
-                )
-            }
+            // ConsensusTransactionKind::CheckpointSignature(data) => {
+            //     ConsensusTransactionKey::CheckpointSignature(
+            //         data.summary.auth_sig().authority,
+            //         data.summary.sequence_number,
+            //     )
+            // }
             ConsensusTransactionKind::EndOfPublish(authority) => {
                 ConsensusTransactionKey::EndOfPublish(*authority)
             }

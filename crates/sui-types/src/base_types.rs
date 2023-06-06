@@ -15,16 +15,13 @@ use crate::dynamic_field::DynamicFieldInfo;
 use crate::dynamic_field::DynamicFieldType;
 use crate::effects::TransactionEffects;
 use crate::effects::TransactionEffectsAPI;
-use crate::epoch_data::EpochData;
-use crate::error::ExecutionErrorKind;
 use crate::error::SuiError;
-use crate::error::{ExecutionError, SuiResult};
+use crate::error::SuiResult;
 use crate::gas_coin::GasCoin;
 use crate::gas_coin::GAS;
 use crate::governance::StakedSui;
 use crate::governance::STAKED_SUI_STRUCT_NAME;
 use crate::governance::STAKING_POOL_MODULE_NAME;
-use crate::messages_checkpoint::CheckpointTimestamp;
 use crate::multisig::MultiSigPublicKey;
 use crate::object::{Object, Owner};
 use crate::parse_sui_struct_tag;
@@ -43,10 +40,6 @@ use fastcrypto::encoding::decode_bytes_hex;
 use fastcrypto::encoding::{Encoding, Hex};
 use fastcrypto::hash::HashFunction;
 use fastcrypto::traits::AllowedRng;
-// use fastcrypto_zkp::bn254::zk_login::big_int_str_to_bytes;
-use move_binary_format::binary_views::BinaryIndexedView;
-use move_binary_format::file_format::SignatureToken;
-use move_bytecode_utils::resolve_struct;
 use move_core_types::account_address::AccountAddress;
 use move_core_types::ident_str;
 use move_core_types::identifier::IdentStr;
@@ -60,7 +53,7 @@ use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use shared_crypto::intent::HashingIntentScope;
 use core::cmp::max;
-use core::convert::{TryFrom, TryInto};
+use core::convert::TryFrom;
 use alloc::fmt;
 use alloc::str::FromStr;
 
@@ -737,19 +730,19 @@ pub const RESOLVED_UTF8_STR: (&AccountAddress, &IdentStr, &IdentStr) = (
 pub const TX_CONTEXT_MODULE_NAME: &IdentStr = ident_str!("tx_context");
 pub const TX_CONTEXT_STRUCT_NAME: &IdentStr = ident_str!("TxContext");
 
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
-pub struct TxContext {
-    /// Signer/sender of the transaction
-    sender: AccountAddress,
-    /// Digest of the current transaction
-    digest: Vec<u8>,
-    /// The current epoch number
-    epoch: EpochId,
-    /// Timestamp that the epoch started at
-    epoch_timestamp_ms: CheckpointTimestamp,
-    /// Number of `ObjectID`'s generated during execution of the current transaction
-    ids_created: u64,
-}
+// #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+// pub struct TxContext {
+//     /// Signer/sender of the transaction
+//     sender: AccountAddress,
+//     /// Digest of the current transaction
+//     digest: Vec<u8>,
+//     /// The current epoch number
+//     epoch: EpochId,
+//     /// Timestamp that the epoch started at
+//     // epoch_timestamp_ms: CheckpointTimestamp,
+//     /// Number of `ObjectID`'s generated during execution of the current transaction
+//     ids_created: u64,
+// }
 
 #[derive(PartialEq, Eq, Clone, Copy)]
 pub enum TxContextKind {
@@ -761,115 +754,113 @@ pub enum TxContextKind {
     Immutable,
 }
 
-impl TxContext {
-    pub fn new(sender: &SuiAddress, digest: &TransactionDigest, epoch_data: &EpochData) -> Self {
-        Self::new_from_components(
-            sender,
-            digest,
-            &epoch_data.epoch_id(),
-            epoch_data.epoch_start_timestamp(),
-        )
-    }
+// impl TxContext {
+//     pub fn new(sender: &SuiAddress, digest: &TransactionDigest) -> Self {
+//         Self::new_from_components(
+//             sender,
+//             digest,
+//             // &epoch_data.epoch_id(),
+//             // epoch_data.epoch_start_timestamp(),
+//         )
+//     }
 
-    pub fn new_from_components(
-        sender: &SuiAddress,
-        digest: &TransactionDigest,
-        epoch_id: &EpochId,
-        epoch_timestamp_ms: u64,
-    ) -> Self {
-        Self {
-            sender: AccountAddress::new(sender.0),
-            digest: digest.into_inner().to_vec(),
-            epoch: *epoch_id,
-            epoch_timestamp_ms,
-            ids_created: 0,
-        }
-    }
+//     pub fn new_from_components(
+//         sender: &SuiAddress,
+//         digest: &TransactionDigest,
+//     ) -> Self {
+//         Self {
+//             sender: AccountAddress::new(sender.0),
+//             digest: digest.into_inner().to_vec(),
+//             epoch: *epoch_id,
+//             // epoch_timestamp_ms,
+//             ids_created: 0,
+//         }
+//     }
 
-    /// Returns whether the type signature is &mut TxContext, &TxContext, or none of the above.
-    pub fn kind(view: &BinaryIndexedView<'_>, s: &SignatureToken) -> TxContextKind {
-        use SignatureToken as S;
-        let (kind, s) = match s {
-            S::MutableReference(s) => (TxContextKind::Mutable, s),
-            S::Reference(s) => (TxContextKind::Immutable, s),
-            _ => return TxContextKind::None,
-        };
+//     /// Returns whether the type signature is &mut TxContext, &TxContext, or none of the above.
+//     pub fn kind(view: &BinaryIndexedView<'_>, s: &SignatureToken) -> TxContextKind {
+//         use SignatureToken as S;
+//         let (kind, s) = match s {
+//             S::MutableReference(s) => (TxContextKind::Mutable, s),
+//             S::Reference(s) => (TxContextKind::Immutable, s),
+//             _ => return TxContextKind::None,
+//         };
 
-        let S::Struct(idx) = &**s else {
-            return TxContextKind::None;
-        };
+//         let S::Struct(idx) = &**s else {
+//             return TxContextKind::None;
+//         };
 
-        let (module_addr, module_name, struct_name) = resolve_struct(view, *idx);
-        let is_tx_context_type = module_name == TX_CONTEXT_MODULE_NAME
-            && module_addr == &SUI_FRAMEWORK_ADDRESS
-            && struct_name == TX_CONTEXT_STRUCT_NAME;
+//         let (module_addr, module_name, struct_name) = resolve_struct(view, *idx);
+//         let is_tx_context_type = module_name == TX_CONTEXT_MODULE_NAME
+//             && module_addr == &SUI_FRAMEWORK_ADDRESS
+//             && struct_name == TX_CONTEXT_STRUCT_NAME;
 
-        if is_tx_context_type {
-            kind
-        } else {
-            TxContextKind::None
-        }
-    }
+//         if is_tx_context_type {
+//             kind
+//         } else {
+//             TxContextKind::None
+//         }
+//     }
 
-    pub fn epoch(&self) -> EpochId {
-        self.epoch
-    }
+//     pub fn epoch(&self) -> EpochId {
+//         self.epoch
+//     }
 
-    /// Derive a globally unique object ID by hashing self.digest | self.ids_created
-    pub fn fresh_id(&mut self) -> ObjectID {
-        let id = ObjectID::derive_id(self.digest(), self.ids_created);
+//     /// Derive a globally unique object ID by hashing self.digest | self.ids_created
+//     pub fn fresh_id(&mut self) -> ObjectID {
+//         let id = ObjectID::derive_id(self.digest(), self.ids_created);
 
-        self.ids_created += 1;
-        id
-    }
+//         self.ids_created += 1;
+//         id
+//     }
 
-    /// Return the transaction digest, to include in new objects
-    pub fn digest(&self) -> TransactionDigest {
-        TransactionDigest::new(self.digest.clone().try_into().unwrap())
-    }
+//     /// Return the transaction digest, to include in new objects
+//     pub fn digest(&self) -> TransactionDigest {
+//         TransactionDigest::new(self.digest.clone().try_into().unwrap())
+//     }
 
-    pub fn sender(&self) -> SuiAddress {
-        SuiAddress::from(ObjectID(self.sender))
-    }
+//     pub fn sender(&self) -> SuiAddress {
+//         SuiAddress::from(ObjectID(self.sender))
+//     }
 
-    pub fn to_vec(&self) -> Vec<u8> {
-        bcs::to_bytes(&self).unwrap()
-    }
+//     pub fn to_vec(&self) -> Vec<u8> {
+//         bcs::to_bytes(&self).unwrap()
+//     }
 
-    /// Updates state of the context instance. It's intended to use
-    /// when mutable context is passed over some boundary via
-    /// serialize/deserialize and this is the reason why this method
-    /// consumes the other context..
-    pub fn update_state(&mut self, other: TxContext) -> Result<(), ExecutionError> {
-        if self.sender != other.sender
-            || self.digest != other.digest
-            || other.ids_created < self.ids_created
-        {
-            return Err(ExecutionError::new_with_source(
-                ExecutionErrorKind::InvariantViolation,
-                "Immutable fields for TxContext changed",
-            ));
-        }
-        self.ids_created = other.ids_created;
-        Ok(())
-    }
+//     /// Updates state of the context instance. It's intended to use
+//     /// when mutable context is passed over some boundary via
+//     /// serialize/deserialize and this is the reason why this method
+//     /// consumes the other context..
+//     pub fn update_state(&mut self, other: TxContext) -> Result<(), ExecutionError> {
+//         if self.sender != other.sender
+//             || self.digest != other.digest
+//             || other.ids_created < self.ids_created
+//         {
+//             return Err(ExecutionError::new_with_source(
+//                 ExecutionErrorKind::InvariantViolation,
+//                 "Immutable fields for TxContext changed",
+//             ));
+//         }
+//         self.ids_created = other.ids_created;
+//         Ok(())
+//     }
 
-    #[cfg(feature = "test-utils")]
-    // Generate a random TxContext for testing.
-    pub fn random_for_testing_only() -> Self {
-        Self::new(
-            &SuiAddress::random_for_testing_only(),
-            &TransactionDigest::random(),
-            &EpochData::new_test(),
-        )
-    }
+//     #[cfg(feature = "test-utils")]
+//     // Generate a random TxContext for testing.
+//     pub fn random_for_testing_only() -> Self {
+//         Self::new(
+//             &SuiAddress::random_for_testing_only(),
+//             &TransactionDigest::random(),
+//             // &EpochData::new_test(),
+//         )
+//     }
 
-    #[cfg(feature = "test-utils")]
-    /// Generate a TxContext for testing with a specific sender.
-    pub fn with_sender_for_testing_only(sender: &SuiAddress) -> Self {
-        Self::new(sender, &TransactionDigest::random(), &EpochData::new_test())
-    }
-}
+//     // #[cfg(feature = "test-utils")]
+//     // /// Generate a TxContext for testing with a specific sender.
+//     // pub fn with_sender_for_testing_only(sender: &SuiAddress) -> Self {
+//     //     Self::new(sender, &TransactionDigest::random(), &EpochData::new_test())
+//     // }
+// }
 
 // TODO: rename to version
 impl SequenceNumber {

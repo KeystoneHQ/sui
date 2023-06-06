@@ -5,11 +5,9 @@ use crate::base_types::{ObjectDigest, SuiAddress};
 use crate::crypto::DefaultHash;
 use crate::error::{SuiError, SuiResult};
 use crate::id::UID;
-use crate::object::Object;
-use crate::storage::ObjectStore;
 use crate::sui_serde::Readable;
 use crate::sui_serde::SuiTypeTag;
-use crate::{MoveTypeTagTrait, ObjectID, SequenceNumber, SUI_FRAMEWORK_ADDRESS};
+use crate::{ObjectID, SequenceNumber, SUI_FRAMEWORK_ADDRESS};
 use fastcrypto::encoding::Base58;
 use fastcrypto::hash::HashFunction;
 use move_core_types::ident_str;
@@ -17,14 +15,12 @@ use move_core_types::identifier::IdentStr;
 use move_core_types::language_storage::{StructTag, TypeTag};
 use move_core_types::value::{MoveStruct, MoveValue};
 use schemars::JsonSchema;
-use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::Value;
 use serde_with::serde_as;
 use serde_with::DisplayFromStr;
 use shared_crypto::intent::HashingIntentScope;
-use alloc::fmt;
 use alloc::fmt::{Display, Formatter};
 
 const DYNAMIC_FIELD_MODULE_NAME: &IdentStr = ident_str!("dynamic_field");
@@ -265,52 +261,4 @@ where
     // truncate into an ObjectID and return
     // OK to access slice because digest should never be shorter than ObjectID::LENGTH.
     Ok(ObjectID::try_from(&hash.as_ref()[0..ObjectID::LENGTH]).unwrap())
-}
-
-/// Given a parent object ID (e.g. a table), and a `key`, retrieve the corresponding dynamic field object
-/// from the `object_store`. The key type `K` must implement `MoveTypeTagTrait` which has an associated
-/// function that returns the Move type tag.
-/// Note that this function returns the Field object itself, not the value in the field.
-pub fn get_dynamic_field_object_from_store<S, K>(
-    object_store: &S,
-    parent_id: ObjectID,
-    key: &K,
-) -> Result<Object, SuiError>
-where
-    S: ObjectStore,
-    K: MoveTypeTagTrait + Serialize + DeserializeOwned + fmt::Debug,
-{
-    let id = derive_dynamic_field_id(parent_id, &K::get_type_tag(), &bcs::to_bytes(key).unwrap())
-        .map_err(|err| SuiError::DynamicFieldReadError(err.to_string()))?;
-    let object = object_store.get_object(&id)?.ok_or_else(|| {
-        SuiError::DynamicFieldReadError(format!(
-            "Dynamic field with key={:?} and ID={:?} not found on parent {:?}",
-            key, id, parent_id
-        ))
-    })?;
-    Ok(object)
-}
-
-/// Similar to `get_dynamic_field_object_from_store`, but returns the value in the field instead of
-/// the Field object itself.
-pub fn get_dynamic_field_from_store<S, K, V>(
-    object_store: &S,
-    parent_id: ObjectID,
-    key: &K,
-) -> Result<V, SuiError>
-where
-    S: ObjectStore,
-    K: MoveTypeTagTrait + Serialize + DeserializeOwned + fmt::Debug,
-    V: Serialize + DeserializeOwned,
-{
-    let object = get_dynamic_field_object_from_store(object_store, parent_id, key)?;
-    let move_object = object.data.try_as_move().ok_or_else(|| {
-        SuiError::DynamicFieldReadError(format!(
-            "Dynamic field {:?} is not a Move object",
-            object.id()
-        ))
-    })?;
-    Ok(bcs::from_bytes::<Field<K, V>>(move_object.contents())
-        .map_err(|err| SuiError::DynamicFieldReadError(err.to_string()))?
-        .value)
 }

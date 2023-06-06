@@ -54,7 +54,7 @@ pub mod governance;
 pub mod id;
 // pub mod in_memory_storage;
 pub mod message_envelope;
-pub mod messages_checkpoint;
+// pub mod messages_checkpoint;
 pub mod messages_consensus;
 // pub mod messages_grpc;
 // pub mod metrics;
@@ -64,7 +64,7 @@ pub mod object;
 pub mod programmable_transaction_builder;
 // pub mod quorum_driver_types;
 pub mod signature;
-pub mod storage;
+// pub mod storage;
 pub mod sui_serde;
 // pub mod sui_system_state;
 // pub mod temporary_store;
@@ -74,7 +74,7 @@ pub mod type_resolver;
 // pub mod zk_login_authenticator;
 // pub mod zk_login_util;
 
-pub mod epoch_data;
+// pub mod epoch_data;
 
 // #[cfg(feature = "test-utils")]
 // #[path = "./unit_tests/utils.rs"]
