@@ -24,8 +24,8 @@ use serde_json::Value;
 use serde_with::serde_as;
 use serde_with::DisplayFromStr;
 use shared_crypto::intent::HashingIntentScope;
-use std::fmt;
-use std::fmt::{Display, Formatter};
+use alloc::fmt;
+use alloc::fmt::{Display, Formatter};
 
 const DYNAMIC_FIELD_MODULE_NAME: &IdentStr = ident_str!("dynamic_field");
 const DYNAMIC_FIELD_FIELD_STRUCT_NAME: &IdentStr = ident_str!("Field");
@@ -71,7 +71,7 @@ pub struct DynamicFieldName {
 }
 
 impl Display for DynamicFieldName {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> alloc::fmt::Result {
         write!(f, "{}: {}", self.type_, self.value)
     }
 }

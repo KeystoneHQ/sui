@@ -13,7 +13,7 @@ use crate::{
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::{collections::BTreeMap, fmt::Debug};
+use alloc::{collections::BTreeMap, fmt::Debug};
 use strum_macros::{AsRefStr, IntoStaticStr};
 use thiserror::Error;
 use tonic::Status;
@@ -41,19 +41,19 @@ use crate::digests::TransactionEventsDigest;
 use crate::execution_status::{CommandIndex, ExecutionFailureStatus};
 pub(crate) use fp_ensure;
 
-#[macro_export]
-macro_rules! exit_main {
-    ($result:expr) => {
-        match $result {
-            Ok(_) => (),
-            Err(err) => {
-                let err = format!("{:?}", err);
-                println!("{}", err.bold().red());
-                std::process::exit(1);
-            }
-        }
-    };
-}
+// #[macro_export]
+// macro_rules! exit_main {
+//     ($result:expr) => {
+//         match $result {
+//             Ok(_) => (),
+//             Err(err) => {
+//                 let err = format!("{:?}", err);
+//                 println!("{}", err.bold().red());
+//                 std::process::exit(1);
+//             }
+//         }
+//     };
+// }
 
 #[macro_export]
 macro_rules! make_invariant_violation {
@@ -741,18 +741,18 @@ impl SuiError {
 }
 
 impl Ord for SuiError {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+    fn cmp(&self, other: &Self) -> core::cmp::Ordering {
         Ord::cmp(self.as_ref(), other.as_ref())
     }
 }
 
 impl PartialOrd for SuiError {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+    fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
         Some(self.cmp(other))
     }
 }
 
-type BoxError = Box<dyn std::error::Error + Send + Sync + 'static>;
+type BoxError = Box<dyn core2::error::Error + Send + Sync + 'static>;
 
 pub type ExecutionErrorKind = ExecutionFailureStatus;
 
@@ -813,14 +813,14 @@ impl ExecutionError {
     }
 }
 
-impl std::fmt::Display for ExecutionError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl alloc::fmt::Display for ExecutionError {
+    fn fmt(&self, f: &mut alloc::fmt::Formatter<'_>) -> alloc::fmt::Result {
         write!(f, "ExecutionError: {:?}", self)
     }
 }
 
-impl std::error::Error for ExecutionError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+impl core2::error::Error for ExecutionError {
+    fn source(&self) -> Option<&(dyn core2::error::Error + 'static)> {
         self.inner.source.as_ref().map(|e| &**e as _)
     }
 }

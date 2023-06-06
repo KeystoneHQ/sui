@@ -11,10 +11,11 @@ use rand::rngs::ThreadRng;
 use rand::seq::SliceRandom;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, BTreeSet, HashMap};
-use std::fmt::Write;
-use std::fmt::{Display, Formatter};
-use std::hash::{Hash, Hasher};
+use alloc::collections::{BTreeMap, BTreeSet};
+use proptest::std_facade::HashMap;
+use alloc::fmt::Write;
+use alloc::fmt::{Display, Formatter};
+use core::hash::{Hash, Hasher};
 pub use sui_protocol_config::ProtocolVersion;
 
 pub type EpochId = u64;
@@ -299,7 +300,7 @@ impl Hash for Committee {
 }
 
 impl Display for Committee {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> alloc::fmt::Result {
         let mut voting_rights = String::new();
         for (name, vote) in &self.voting_rights {
             write!(voting_rights, "{}: {}, ", name.concise(), vote)?;

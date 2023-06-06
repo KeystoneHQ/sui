@@ -32,10 +32,10 @@ use serde::ser::Serializer;
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_with::{serde_as, Bytes};
 use shared_crypto::intent::{Intent, IntentMessage, IntentScope};
-use std::collections::BTreeMap;
-use std::fmt::{Display, Formatter};
-use std::hash::{Hash, Hasher};
-use std::str::FromStr;
+use alloc::collections::BTreeMap;
+use alloc::fmt::{Display, Formatter};
+use core::hash::{Hash, Hasher};
+use alloc::str::FromStr;
 use strum::EnumString;
 
 use crate::base_types::{AuthorityName, SuiAddress};
@@ -47,7 +47,7 @@ use fastcrypto::encoding::{Base64, Encoding, Hex};
 use fastcrypto::error::FastCryptoError;
 use fastcrypto::hash::{Blake2b256, HashFunction};
 pub use fastcrypto::traits::Signer;
-use std::fmt::Debug;
+use alloc::fmt::Debug;
 use tracing::warn;
 
 // Authority Objects
@@ -356,7 +356,7 @@ pub struct AuthorityPublicKeyBytes(
 );
 
 impl AuthorityPublicKeyBytes {
-    fn fmt_impl(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
+    fn fmt_impl(&self, f: &mut Formatter<'_>) -> Result<(), alloc::fmt::Error> {
         let s = Hex::encode(self.0);
         write!(f, "k#{}", s)?;
         Ok(())
@@ -379,14 +379,14 @@ impl AuthorityPublicKeyBytes {
 pub struct ConciseAuthorityPublicKeyBytesRef<'a>(&'a AuthorityPublicKeyBytes);
 
 impl Debug for ConciseAuthorityPublicKeyBytesRef<'_> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
-        let s = Hex::encode(self.0 .0.get(0..4).ok_or(std::fmt::Error)?);
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), alloc::fmt::Error> {
+        let s = Hex::encode(self.0 .0.get(0..4).ok_or(alloc::fmt::Error)?);
         write!(f, "k#{}..", s)
     }
 }
 
 impl Display for ConciseAuthorityPublicKeyBytesRef<'_> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), alloc::fmt::Error> {
         Debug::fmt(self, f)
     }
 }
@@ -396,14 +396,14 @@ impl Display for ConciseAuthorityPublicKeyBytesRef<'_> {
 pub struct ConciseAuthorityPublicKeyBytes(AuthorityPublicKeyBytes);
 
 impl Debug for ConciseAuthorityPublicKeyBytes {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
-        let s = Hex::encode(self.0 .0.get(0..4).ok_or(std::fmt::Error)?);
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), alloc::fmt::Error> {
+        let s = Hex::encode(self.0 .0.get(0..4).ok_or(alloc::fmt::Error)?);
         write!(f, "k#{}..", s)
     }
 }
 
 impl Display for ConciseAuthorityPublicKeyBytes {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), alloc::fmt::Error> {
         Debug::fmt(self, f)
     }
 }
@@ -423,13 +423,13 @@ impl From<&AuthorityPublicKey> for AuthorityPublicKeyBytes {
 }
 
 impl Debug for AuthorityPublicKeyBytes {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), alloc::fmt::Error> {
         self.fmt_impl(f)
     }
 }
 
 impl Display for AuthorityPublicKeyBytes {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), alloc::fmt::Error> {
         self.fmt_impl(f)
     }
 }
@@ -1154,7 +1154,7 @@ impl Hash for AuthoritySignInfo {
 }
 
 impl Display for AuthoritySignInfo {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> alloc::fmt::Result {
         write!(
             f,
             "AuthoritySignInfo {{ epoch: {:?}, authority: {} }}",
@@ -1393,7 +1393,7 @@ impl<const STRONG_THRESHOLD: bool> AuthorityQuorumSignInfo<STRONG_THRESHOLD> {
 }
 
 impl<const S: bool> Display for AuthorityQuorumSignInfo<S> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> alloc::fmt::Result {
         writeln!(
             f,
             "{} {{ epoch: {:?}, signers_map: {:?} }}",
@@ -1588,7 +1588,7 @@ impl<'a> VerificationObligation<'a> {
             for (i, chunk) in message
                 .as_bytes()
                 .chunks(chunk_size)
-                .map(std::str::from_utf8)
+                .map(alloc::str::from_utf8)
                 .enumerate()
             {
                 warn!(

@@ -5,7 +5,7 @@ use crate::ObjectID;
 use move_binary_format::file_format::{CodeOffset, TypeParameterIndex};
 use move_core_types::language_storage::ModuleId;
 use serde::{Deserialize, Serialize};
-use std::fmt::{Display, Formatter};
+use alloc::fmt::{Display, Formatter};
 use sui_macros::EnumVariantOrder;
 use thiserror::Error;
 
@@ -270,7 +270,7 @@ impl ExecutionFailureStatus {
 }
 
 impl Display for MoveLocationOpt {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> alloc::fmt::Result {
         match &self.0 {
             None => write!(f, "UNKNOWN"),
             Some(l) => write!(f, "{l}"),
@@ -279,7 +279,7 @@ impl Display for MoveLocationOpt {
 }
 
 impl Display for MoveLocation {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> alloc::fmt::Result {
         let Self {
             module,
             function,

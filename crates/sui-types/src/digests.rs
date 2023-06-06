@@ -1,7 +1,7 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-use std::fmt;
+use alloc::fmt;
 
 use crate::sui_serde::Readable;
 use fastcrypto::encoding::{Base58, Encoding};
@@ -257,7 +257,7 @@ impl fmt::UpperHex for CheckpointDigest {
     }
 }
 
-impl std::str::FromStr for CheckpointDigest {
+impl alloc::str::FromStr for CheckpointDigest {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -488,7 +488,7 @@ impl TryFrom<&[u8]> for TransactionDigest {
     }
 }
 
-impl std::str::FromStr for TransactionDigest {
+impl alloc::str::FromStr for TransactionDigest {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -717,7 +717,7 @@ impl TryFrom<&[u8]> for ObjectDigest {
     }
 }
 
-impl std::str::FromStr for ObjectDigest {
+impl alloc::str::FromStr for ObjectDigest {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {

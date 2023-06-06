@@ -1,7 +1,7 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-use std::str::FromStr;
+use alloc::str::FromStr;
 
 use anyhow::ensure;
 use move_bytecode_utils::module_cache::GetModule;

@@ -25,8 +25,8 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use shared_crypto::intent::IntentScope;
-use std::fmt::{Debug, Display, Formatter};
-use std::slice::Iter;
+use alloc::fmt::{Debug, Display, Formatter};
+use alloc::slice::Iter;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 pub use crate::digests::CheckpointContentsDigest;

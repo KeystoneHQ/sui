@@ -21,7 +21,7 @@ use core::fmt::{Display, Formatter};
 use enum_dispatch::enum_dispatch;
 use serde::{Deserialize, Serialize};
 use shared_crypto::intent::IntentScope;
-use std::fmt::Write;
+use alloc::fmt::Write;
 use sui_protocol_config::{ProtocolConfig, ProtocolVersion, SupportedProtocolVersions};
 
 // Since `std::mem::size_of` may not be stable across platforms, we use rough constants
@@ -363,7 +363,7 @@ impl TransactionEffectsAPI for TransactionEffectsV1 {
 }
 
 impl Display for TransactionEffectsV1 {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> alloc::fmt::Result {
         let mut writer = String::new();
         writeln!(writer, "Status : {:?}", self.status)?;
         if !self.created.is_empty() {

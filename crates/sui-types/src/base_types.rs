@@ -59,10 +59,10 @@ use serde::ser::Error;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use shared_crypto::intent::HashingIntentScope;
-use std::cmp::max;
-use std::convert::{TryFrom, TryInto};
-use std::fmt;
-use std::str::FromStr;
+use core::cmp::max;
+use core::convert::{TryFrom, TryInto};
+use alloc::fmt;
+use alloc::str::FromStr;
 
 #[derive(
     Eq,
@@ -1161,7 +1161,7 @@ impl FromStr for ObjectID {
     }
 }
 
-impl std::ops::Deref for ObjectID {
+impl core::ops::Deref for ObjectID {
     type Target = AccountAddress;
 
     fn deref(&self) -> &Self::Target {
@@ -1197,7 +1197,7 @@ impl From<SuiAddress> for AccountAddress {
 }
 
 impl fmt::Display for MoveObjectType {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> alloc::fmt::Result {
         let s: StructTag = self.clone().into();
         write!(
             f,
@@ -1208,7 +1208,7 @@ impl fmt::Display for MoveObjectType {
 }
 
 impl fmt::Display for ObjectType {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> alloc::fmt::Result {
         match self {
             ObjectType::Package => write!(f, "{}", PACKAGE),
             ObjectType::Struct(t) => write!(f, "{}", t),

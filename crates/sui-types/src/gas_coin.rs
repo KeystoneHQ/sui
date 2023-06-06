@@ -8,8 +8,8 @@ use move_core_types::{
     value::MoveStructLayout,
 };
 use serde::{Deserialize, Serialize};
-use std::convert::{TryFrom, TryInto};
-use std::fmt::{Display, Formatter};
+use core::convert::{TryFrom, TryInto};
+use alloc::fmt::{Display, Formatter};
 
 use crate::{
     balance::Balance,
@@ -146,7 +146,7 @@ impl TryFrom<&Object> for GasCoin {
 }
 
 impl Display for GasCoin {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> alloc::fmt::Result {
         write!(f, "Coin {{ id: {}, value: {} }}", self.id(), self.value())
     }
 }
