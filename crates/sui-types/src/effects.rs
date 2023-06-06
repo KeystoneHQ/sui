@@ -6,14 +6,14 @@ use crate::base_types::{
 };
 use crate::committee::EpochId;
 use crate::crypto::{
-    default_hash, AuthoritySignInfo, AuthorityStrongQuorumSignInfo, EmptySignInfo,
+    default_hash, AuthorityStrongQuorumSignInfo, EmptySignInfo,
 };
 use crate::digests::{TransactionDigest, TransactionEffectsDigest, TransactionEventsDigest};
 use crate::error::{SuiError, SuiResult};
 use crate::event::Event;
 use crate::execution_status::ExecutionStatus;
 use crate::gas::GasCostSummary;
-use crate::message_envelope::{Envelope, Message, TrustedEnvelope, VerifiedEnvelope};
+use crate::message_envelope::{Envelope, Message, VerifiedEnvelope};
 use crate::object::Owner;
 use crate::transaction::{Transaction, TransactionDataAPI, VersionedProtocolMessage};
 use core::fmt::{Display, Formatter};
@@ -498,11 +498,8 @@ pub struct TransactionEffectsDebugSummary {
 
 pub type TransactionEffectsEnvelope<S> = Envelope<TransactionEffects, S>;
 pub type UnsignedTransactionEffects = TransactionEffectsEnvelope<EmptySignInfo>;
-pub type SignedTransactionEffects = TransactionEffectsEnvelope<AuthoritySignInfo>;
 pub type CertifiedTransactionEffects = TransactionEffectsEnvelope<AuthorityStrongQuorumSignInfo>;
 
-pub type TrustedSignedTransactionEffects = TrustedEnvelope<TransactionEffects, AuthoritySignInfo>;
 pub type VerifiedTransactionEffectsEnvelope<S> = VerifiedEnvelope<TransactionEffects, S>;
-pub type VerifiedSignedTransactionEffects = VerifiedTransactionEffectsEnvelope<AuthoritySignInfo>;
 pub type VerifiedCertifiedTransactionEffects =
     VerifiedTransactionEffectsEnvelope<AuthorityStrongQuorumSignInfo>;

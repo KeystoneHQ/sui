@@ -32,14 +32,13 @@ use serde::ser::Serializer;
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_with::{serde_as, Bytes};
 use shared_crypto::intent::{Intent, IntentMessage, IntentScope};
-use alloc::collections::BTreeMap;
 use alloc::fmt::{Display, Formatter};
-use core::hash::{Hash, Hasher};
+use core::hash::Hash;
 use alloc::str::FromStr;
 use strum::EnumString;
 
-use crate::base_types::{AuthorityName, SuiAddress};
-use crate::committee::{Committee, EpochId, StakeUnit};
+use crate::base_types::SuiAddress;
+use crate::committee::EpochId;
 use crate::error::{SuiError, SuiResult};
 use crate::sui_serde::{Readable, SuiBitmap};
 pub use enum_dispatch::enum_dispatch;
@@ -1019,157 +1018,8 @@ impl<S: SuiSignatureInner + Sized> SuiSignature for S {
     }
 }
 
-/// AuthoritySignInfoTrait is a trait used specifically for a few structs in messages.rs
-/// to template on whether the struct is signed by an authority. We want to limit how
-/// those structs can be instantiated on, hence the sealed trait.
-/// TODO: We could also add the aggregated signature as another impl of the trait.
-///       This will make CertifiedTransaction also an instance of the same struct.
-pub trait AuthoritySignInfoTrait: private::SealedAuthoritySignInfoTrait {
-    fn verify_secure<T: Serialize>(
-        &self,
-        data: &T,
-        intent: Intent,
-        committee: &Committee,
-    ) -> SuiResult;
-
-    fn add_to_verification_obligation<'a>(
-        &self,
-        committee: &'a Committee,
-        obligation: &mut VerificationObligation<'a>,
-        message_index: usize,
-    ) -> SuiResult<()>;
-}
-
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct EmptySignInfo {}
-impl AuthoritySignInfoTrait for EmptySignInfo {
-    fn verify_secure<T: Serialize>(
-        &self,
-        _data: &T,
-        _intent: Intent,
-        _committee: &Committee,
-    ) -> SuiResult {
-        Ok(())
-    }
-
-    fn add_to_verification_obligation<'a>(
-        &self,
-        _committee: &'a Committee,
-        _obligation: &mut VerificationObligation<'a>,
-        _message_index: usize,
-    ) -> SuiResult<()> {
-        Ok(())
-    }
-}
-
-#[derive(Clone, Debug, Eq, Serialize, Deserialize)]
-pub struct AuthoritySignInfo {
-    pub epoch: EpochId,
-    pub authority: AuthorityName,
-    pub signature: AuthoritySignature,
-}
-
-impl AuthoritySignInfoTrait for AuthoritySignInfo {
-    fn verify_secure<T: Serialize>(
-        &self,
-        data: &T,
-        intent: Intent,
-        committee: &Committee,
-    ) -> SuiResult<()> {
-        let mut obligation = VerificationObligation::default();
-        let idx = obligation.add_message(data, self.epoch, intent);
-        self.add_to_verification_obligation(committee, &mut obligation, idx)?;
-        obligation.verify_all()?;
-        Ok(())
-    }
-
-    fn add_to_verification_obligation<'a>(
-        &self,
-        committee: &'a Committee,
-        obligation: &mut VerificationObligation<'a>,
-        message_index: usize,
-    ) -> SuiResult<()> {
-        fp_ensure!(
-            self.epoch == committee.epoch(),
-            SuiError::WrongEpoch {
-                expected_epoch: committee.epoch(),
-                actual_epoch: self.epoch,
-            }
-        );
-        let weight = committee.weight(&self.authority);
-        fp_ensure!(
-            weight > 0,
-            SuiError::UnknownSigner {
-                signer: Some(self.authority.concise().to_string()),
-                index: None,
-                committee: Box::new(committee.clone())
-            }
-        );
-
-        obligation
-            .public_keys
-            .get_mut(message_index)
-            .ok_or(SuiError::InvalidAddress)?
-            .push(committee.public_key(&self.authority)?);
-        obligation
-            .signatures
-            .get_mut(message_index)
-            .ok_or(SuiError::InvalidAddress)?
-            .add_signature(self.signature.clone())
-            .map_err(|_| SuiError::InvalidSignature {
-                error: "Fail to aggregator auth sig".to_string(),
-            })?;
-        Ok(())
-    }
-}
-
-impl AuthoritySignInfo {
-    pub fn new<T>(
-        epoch: EpochId,
-        value: &T,
-        intent: Intent,
-        name: AuthorityName,
-        secret: &dyn Signer<AuthoritySignature>,
-    ) -> Self
-    where
-        T: Serialize,
-    {
-        Self {
-            epoch,
-            authority: name,
-            signature: AuthoritySignature::new_secure(
-                &IntentMessage::new(intent, value),
-                &epoch,
-                secret,
-            ),
-        }
-    }
-}
-
-impl Hash for AuthoritySignInfo {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.epoch.hash(state);
-        self.authority.hash(state);
-    }
-}
-
-impl Display for AuthoritySignInfo {
-    fn fmt(&self, f: &mut Formatter<'_>) -> alloc::fmt::Result {
-        write!(
-            f,
-            "AuthoritySignInfo {{ epoch: {:?}, authority: {} }}",
-            self.epoch, self.authority,
-        )
-    }
-}
-
-impl PartialEq for AuthoritySignInfo {
-    fn eq(&self, other: &Self) -> bool {
-        // We do not compare the signature, because there can be multiple
-        // valid signatures for the same epoch and authority.
-        self.epoch == other.epoch && self.authority == other.authority
-    }
-}
 
 /// Represents at least a quorum (could be more) of authority signatures.
 /// STRONG_THRESHOLD indicates whether to use the quorum threshold for quorum check.
@@ -1236,162 +1086,6 @@ impl TryFrom<&SuiAuthorityStrongQuorumSignInfo> for AuthorityStrongQuorumSignInf
 // see also https://github.com/MystenLabs/sui/issues/266
 static_assertions::assert_not_impl_any!(AuthorityStrongQuorumSignInfo: Hash, Eq, PartialEq);
 
-impl<const STRONG_THRESHOLD: bool> AuthoritySignInfoTrait
-    for AuthorityQuorumSignInfo<STRONG_THRESHOLD>
-{
-    fn verify_secure<T: Serialize>(
-        &self,
-        data: &T,
-        intent: Intent,
-        committee: &Committee,
-    ) -> SuiResult {
-        let mut obligation = VerificationObligation::default();
-        let idx = obligation.add_message(data, self.epoch, intent);
-        self.add_to_verification_obligation(committee, &mut obligation, idx)?;
-        obligation.verify_all()?;
-        Ok(())
-    }
-
-    fn add_to_verification_obligation<'a>(
-        &self,
-        committee: &'a Committee,
-        obligation: &mut VerificationObligation<'a>,
-        message_index: usize,
-    ) -> SuiResult<()> {
-        // Check epoch
-        fp_ensure!(
-            self.epoch == committee.epoch(),
-            SuiError::WrongEpoch {
-                expected_epoch: committee.epoch(),
-                actual_epoch: self.epoch,
-            }
-        );
-
-        let mut weight = 0;
-
-        // Create obligations for the committee signatures
-        obligation
-            .signatures
-            .get_mut(message_index)
-            .ok_or(SuiError::InvalidAuthenticator)?
-            .add_aggregate(self.signature.clone())
-            .map_err(|_| SuiError::InvalidSignature {
-                error: "Signature Aggregation failed".to_string(),
-            })?;
-
-        let selected_public_keys = obligation
-            .public_keys
-            .get_mut(message_index)
-            .ok_or(SuiError::InvalidAuthenticator)?;
-
-        for authority_index in self.signers_map.iter() {
-            let authority = committee
-                .authority_by_index(authority_index)
-                .ok_or_else(|| SuiError::UnknownSigner {
-                    signer: None,
-                    index: Some(authority_index),
-                    committee: Box::new(committee.clone()),
-                })?;
-
-            // Update weight.
-            let voting_rights = committee.weight(authority);
-            fp_ensure!(
-                voting_rights > 0,
-                SuiError::UnknownSigner {
-                    signer: Some(authority.concise().to_string()),
-                    index: Some(authority_index),
-                    committee: Box::new(committee.clone()),
-                }
-            );
-            weight += voting_rights;
-
-            selected_public_keys.push(committee.public_key(authority)?);
-        }
-
-        fp_ensure!(
-            weight >= Self::quorum_threshold(committee),
-            SuiError::CertificateRequiresQuorum
-        );
-
-        Ok(())
-    }
-}
-
-impl<const STRONG_THRESHOLD: bool> AuthorityQuorumSignInfo<STRONG_THRESHOLD> {
-    pub fn new_from_auth_sign_infos(
-        auth_sign_infos: Vec<AuthoritySignInfo>,
-        committee: &Committee,
-    ) -> SuiResult<Self> {
-        fp_ensure!(
-            auth_sign_infos.iter().all(|a| a.epoch == committee.epoch),
-            SuiError::InvalidSignature {
-                error: "All signatures must be from the same epoch as the committee".to_string()
-            }
-        );
-        let total_stake: StakeUnit = auth_sign_infos
-            .iter()
-            .map(|a| committee.weight(&a.authority))
-            .sum();
-        fp_ensure!(
-            total_stake >= Self::quorum_threshold(committee),
-            SuiError::InvalidSignature {
-                error: "Signatures don't have enough stake to form a quorum".to_string()
-            }
-        );
-
-        let signatures: BTreeMap<_, _> = auth_sign_infos
-            .into_iter()
-            .map(|a| (a.authority, a.signature))
-            .collect();
-        let mut map = RoaringBitmap::new();
-        for pk in signatures.keys() {
-            map.insert(
-                committee
-                    .authority_index(pk)
-                    .ok_or_else(|| SuiError::UnknownSigner {
-                        signer: Some(pk.concise().to_string()),
-                        index: None,
-                        committee: Box::new(committee.clone()),
-                    })?,
-            );
-        }
-        let sigs: Vec<AuthoritySignature> = signatures.into_values().collect();
-
-        Ok(AuthorityQuorumSignInfo {
-            epoch: committee.epoch,
-            signature: AggregateAuthoritySignature::aggregate(&sigs).map_err(|e| {
-                SuiError::InvalidSignature {
-                    error: e.to_string(),
-                }
-            })?,
-            signers_map: map,
-        })
-    }
-
-    pub fn authorities<'a>(
-        &'a self,
-        committee: &'a Committee,
-    ) -> impl Iterator<Item = SuiResult<&AuthorityName>> {
-        self.signers_map.iter().map(|i| {
-            committee
-                .authority_by_index(i)
-                .ok_or(SuiError::InvalidAuthenticator)
-        })
-    }
-
-    pub fn quorum_threshold(committee: &Committee) -> StakeUnit {
-        committee.threshold::<STRONG_THRESHOLD>()
-    }
-
-    pub fn len(&self) -> u64 {
-        self.signers_map.len()
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.signers_map.is_empty()
-    }
-}
-
 impl<const S: bool> Display for AuthorityQuorumSignInfo<S> {
     fn fmt(&self, f: &mut Formatter<'_>) -> alloc::fmt::Result {
         writeln!(
@@ -1412,7 +1106,6 @@ impl<const S: bool> Display for AuthorityQuorumSignInfo<S> {
 mod private {
     pub trait SealedAuthoritySignInfoTrait {}
     impl SealedAuthoritySignInfoTrait for super::EmptySignInfo {}
-    impl SealedAuthoritySignInfoTrait for super::AuthoritySignInfo {}
     impl<const S: bool> SealedAuthoritySignInfoTrait for super::AuthorityQuorumSignInfo<S> {}
 }
 

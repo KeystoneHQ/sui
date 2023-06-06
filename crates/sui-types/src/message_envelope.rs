@@ -1,19 +1,16 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::base_types::AuthorityName;
-use crate::committee::{Committee, EpochId};
+use crate::committee::EpochId;
 use crate::crypto::{
-    AuthorityKeyPair, AuthorityQuorumSignInfo, AuthoritySignInfo, AuthoritySignInfoTrait,
-    AuthoritySignature, AuthorityStrongQuorumSignInfo, EmptySignInfo, Signer,
+    AuthorityStrongQuorumSignInfo, EmptySignInfo,
 };
 use crate::error::SuiResult;
 use crate::executable_transaction::CertificateProof;
 use crate::transaction::VersionedProtocolMessage;
-use fastcrypto::traits::KeyPair;
 use once_cell::sync::OnceCell;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use shared_crypto::intent::{Intent, IntentScope};
+use shared_crypto::intent::IntentScope;
 use alloc::fmt::{Debug, Display, Formatter};
 use core::ops::{Deref, DerefMut};
 use sui_protocol_config::ProtocolConfig;
@@ -154,115 +151,6 @@ impl<T: Message> Envelope<T, EmptySignInfo> {
         Ok(VerifiedEnvelope::<T, EmptySignInfo>::new_from_verified(
             self,
         ))
-    }
-}
-
-impl<T> Envelope<T, AuthoritySignInfo>
-where
-    T: Message + Serialize,
-{
-    pub fn new(
-        epoch: EpochId,
-        data: T,
-        secret: &dyn Signer<AuthoritySignature>,
-        authority: AuthorityName,
-    ) -> Self {
-        let auth_signature = Self::sign(epoch, &data, secret, authority);
-        Self {
-            digest: OnceCell::new(),
-            data,
-            auth_signature,
-        }
-    }
-
-    pub fn sign(
-        epoch: EpochId,
-        data: &T,
-        secret: &dyn Signer<AuthoritySignature>,
-        authority: AuthorityName,
-    ) -> AuthoritySignInfo {
-        AuthoritySignInfo::new(epoch, &data, Intent::sui_app(T::SCOPE), authority, secret)
-    }
-
-    pub fn epoch(&self) -> EpochId {
-        self.auth_signature.epoch
-    }
-
-    pub fn verify_signature(&self, committee: &Committee) -> SuiResult {
-        self.data.verify(Some(self.auth_sig().epoch))?;
-        self.auth_signature
-            .verify_secure(self.data(), Intent::sui_app(T::SCOPE), committee)
-    }
-
-    pub fn verify(
-        self,
-        committee: &Committee,
-    ) -> SuiResult<VerifiedEnvelope<T, AuthoritySignInfo>> {
-        self.verify_signature(committee)?;
-        Ok(VerifiedEnvelope::<T, AuthoritySignInfo>::new_from_verified(
-            self,
-        ))
-    }
-}
-
-impl<T, const S: bool> Envelope<T, AuthorityQuorumSignInfo<S>>
-where
-    T: Message + Serialize,
-{
-    pub fn new(
-        data: T,
-        signatures: Vec<AuthoritySignInfo>,
-        committee: &Committee,
-    ) -> SuiResult<Self> {
-        let cert = Self {
-            digest: OnceCell::new(),
-            data,
-            auth_signature: AuthorityQuorumSignInfo::<S>::new_from_auth_sign_infos(
-                signatures, committee,
-            )?,
-        };
-
-        Ok(cert)
-    }
-
-    pub fn new_from_keypairs_for_testing(
-        data: T,
-        keypairs: &[AuthorityKeyPair],
-        committee: &Committee,
-    ) -> Self {
-        let signatures = keypairs
-            .iter()
-            .map(|keypair| {
-                AuthoritySignInfo::new(
-                    committee.epoch(),
-                    &data,
-                    Intent::sui_app(T::SCOPE),
-                    keypair.public().into(),
-                    keypair,
-                )
-            })
-            .collect();
-        Self::new(data, signatures, committee).unwrap()
-    }
-
-    pub fn epoch(&self) -> EpochId {
-        self.auth_signature.epoch
-    }
-
-    // TODO: Eventually we should remove all calls to verify_signature
-    // and make sure they all call verify to avoid repeated verifications.
-    pub fn verify_signature(&self, committee: &Committee) -> SuiResult {
-        self.data.verify(Some(self.auth_sig().epoch))?;
-        self.auth_signature
-            .verify_secure(self.data(), Intent::sui_app(T::SCOPE), committee)
-    }
-
-    pub fn verify(
-        self,
-        committee: &Committee,
-    ) -> SuiResult<VerifiedEnvelope<T, AuthorityQuorumSignInfo<S>>> {
-        self.verify_signature(committee)?;
-        Ok(VerifiedEnvelope::<T, AuthorityQuorumSignInfo<S>>::new_from_verified(self))
     }
 }
 

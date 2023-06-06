@@ -5,11 +5,11 @@
 use super::{base_types::*, error::*};
 use crate::committee::{EpochId, ProtocolVersion};
 use crate::crypto::{
-    default_hash, AuthoritySignInfo, AuthoritySignature, AuthorityStrongQuorumSignInfo,
+    default_hash,
     DefaultHash, Ed25519SuiSignature, EmptySignInfo, Signature, Signer, SuiSignatureInner,
     ToFromBytes,
 };
-use crate::digests::{CertificateDigest, SenderSignedDataDigest};
+use crate::digests::SenderSignedDataDigest;
 use crate::message_envelope::{
     Envelope, Message, TrustedEnvelope, VerifiedEnvelope,
 };
@@ -1936,22 +1936,22 @@ impl VerifiedTransaction {
     }
 }
 
-impl VerifiedSignedTransaction {
-    /// Use signing key to create a signed object.
-    pub fn new(
-        epoch: EpochId,
-        transaction: VerifiedTransaction,
-        authority: AuthorityName,
-        secret: &dyn Signer<AuthoritySignature>,
-    ) -> Self {
-        Self::new_from_verified(SignedTransaction::new(
-            epoch,
-            transaction.into_inner().into_data(),
-            secret,
-            authority,
-        ))
-    }
-}
+// impl VerifiedSignedTransaction {
+//     /// Use signing key to create a signed object.
+//     pub fn new(
+//         epoch: EpochId,
+//         transaction: VerifiedTransaction,
+//         authority: AuthorityName,
+//         secret: &dyn Signer<AuthoritySignature>,
+//     ) -> Self {
+//         Self::new_from_verified(SignedTransaction::new(
+//             epoch,
+//             transaction.into_inner().into_data(),
+//             secret,
+//             authority,
+//         ))
+//     }
+// }
 
 /// A transaction that is signed by a sender but not yet by an authority.
 pub type Transaction = Envelope<SenderSignedData, EmptySignInfo>;
@@ -1959,22 +1959,22 @@ pub type VerifiedTransaction = VerifiedEnvelope<SenderSignedData, EmptySignInfo>
 pub type TrustedTransaction = TrustedEnvelope<SenderSignedData, EmptySignInfo>;
 
 /// A transaction that is signed by a sender and also by an authority.
-pub type SignedTransaction = Envelope<SenderSignedData, AuthoritySignInfo>;
-pub type VerifiedSignedTransaction = VerifiedEnvelope<SenderSignedData, AuthoritySignInfo>;
+// pub type SignedTransaction = Envelope<SenderSignedData, AuthoritySignInfo>;
+// pub type VerifiedSignedTransaction = VerifiedEnvelope<SenderSignedData, AuthoritySignInfo>;
 
-pub type CertifiedTransaction = Envelope<SenderSignedData, AuthorityStrongQuorumSignInfo>;
+// pub type CertifiedTransaction = Envelope<SenderSignedData, AuthorityStrongQuorumSignInfo>;
 
-impl CertifiedTransaction {
-    pub fn certificate_digest(&self) -> CertificateDigest {
-        let mut digest = DefaultHash::default();
-        bcs::serialize_into(&mut digest, self).expect("serialization should not fail");
-        let hash = digest.finalize();
-        CertificateDigest::new(hash.into())
-    }
-}
+// impl CertifiedTransaction {
+//     pub fn certificate_digest(&self) -> CertificateDigest {
+//         let mut digest = DefaultHash::default();
+//         bcs::serialize_into(&mut digest, self).expect("serialization should not fail");
+//         let hash = digest.finalize();
+//         CertificateDigest::new(hash.into())
+//     }
+// }
 
-pub type VerifiedCertificate = VerifiedEnvelope<SenderSignedData, AuthorityStrongQuorumSignInfo>;
-pub type TrustedCertificate = TrustedEnvelope<SenderSignedData, AuthorityStrongQuorumSignInfo>;
+// pub type VerifiedCertificate = VerifiedEnvelope<SenderSignedData, AuthorityStrongQuorumSignInfo>;
+// pub type TrustedCertificate = TrustedEnvelope<SenderSignedData, AuthorityStrongQuorumSignInfo>;
 
 pub trait VersionedProtocolMessage {
     /// Return version of message. Some messages depend on their enclosing messages to know the
@@ -2143,16 +2143,16 @@ impl InputObjects {
     }
 }
 
-impl Display for CertifiedTransaction {
-    fn fmt(&self, f: &mut Formatter<'_>) -> alloc::fmt::Result {
-        let mut writer = String::new();
-        writeln!(writer, "Transaction Hash: {:?}", self.digest())?;
-        writeln!(
-            writer,
-            "Signed Authorities Bitmap : {:?}",
-            self.auth_sig().signers_map
-        )?;
-        write!(writer, "{}", &self.data().intent_message().value.kind())?;
-        write!(f, "{}", writer)
-    }
-}
+// impl Display for CertifiedTransaction {
+//     fn fmt(&self, f: &mut Formatter<'_>) -> alloc::fmt::Result {
+//         let mut writer = String::new();
+//         writeln!(writer, "Transaction Hash: {:?}", self.digest())?;
+//         writeln!(
+//             writer,
+//             "Signed Authorities Bitmap : {:?}",
+//             self.auth_sig().signers_map
+//         )?;
+//         write!(writer, "{}", &self.data().intent_message().value.kind())?;
+//         write!(f, "{}", writer)
+//     }
+// }
