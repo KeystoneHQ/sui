@@ -52,7 +52,7 @@ pub mod gas_coin;
 pub mod governance;
 pub mod id;
 // pub mod in_memory_storage;
-pub mod message_envelope;
+// pub mod message_envelope;
 // pub mod messages_checkpoint;
 // pub mod messages_consensus;
 // pub mod messages_grpc;

@@ -31,7 +31,6 @@ use schemars::JsonSchema;
 use serde::ser::Serializer;
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_with::{serde_as, Bytes};
-use shared_crypto::intent::IntentMessage;
 use alloc::fmt::{Display, Formatter};
 use core::hash::Hash;
 use alloc::str::FromStr;
@@ -840,15 +839,6 @@ pub trait SuiSignature: Sized + ToFromBytes {
     fn signature_bytes(&self) -> &[u8];
     fn public_key_bytes(&self) -> &[u8];
     fn scheme(&self) -> SignatureScheme;
-
-    fn verify_secure<T>(
-        &self,
-        value: &IntentMessage<T>,
-        author: SuiAddress,
-        scheme: SignatureScheme,
-    ) -> SuiResult<()>
-    where
-        T: Serialize;
 }
 
 impl<S: SuiSignatureInner + Sized> SuiSignature for S {
@@ -866,41 +856,6 @@ impl<S: SuiSignatureInner + Sized> SuiSignature for S {
 
     fn scheme(&self) -> SignatureScheme {
         S::PubKey::SIGNATURE_SCHEME
-    }
-
-    fn verify_secure<T>(
-        &self,
-        value: &IntentMessage<T>,
-        author: SuiAddress,
-        scheme: SignatureScheme,
-    ) -> Result<(), SuiError>
-    where
-        T: Serialize,
-    {
-        let mut hasher = DefaultHash::default();
-        hasher.update(&bcs::to_bytes(&value).expect("Message serialization should not fail"));
-        let digest = hasher.finalize().digest;
-
-        let (sig, pk) = &self.get_verification_inputs()?;
-        match scheme {
-            SignatureScheme::ZkLoginAuthenticator => {} // Pass this check because zk login does not derive address from pubkey.
-            _ => {
-                let address = SuiAddress::from(pk);
-                if author != address {
-                    return Err(SuiError::IncorrectSigner {
-                        error: format!(
-                            "Incorrect signer, expected {:?}, got {:?}",
-                            author, address
-                        ),
-                    });
-                }
-            }
-        }
-
-        pk.verify(&digest, sig)
-            .map_err(|e| SuiError::InvalidSignature {
-                error: format!("Fail to verify user sig {}", e),
-            })
     }
 }
 

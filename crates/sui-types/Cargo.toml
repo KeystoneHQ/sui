@@ -44,7 +44,6 @@ move-ir-types.workspace = true
 move-vm-types.workspace = true
 
 sui-protocol-config = { path = "../sui-protocol-config" }
-shared-crypto = { path = "../shared-crypto" }
 sui-macros = { path = "../sui-macros" }
 sui-enum-compat-util = { path = "../sui-enum-compat-util" }
 
