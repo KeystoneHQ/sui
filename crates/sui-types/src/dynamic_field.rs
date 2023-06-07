@@ -12,7 +12,6 @@ use move_core_types::ident_str;
 use move_core_types::identifier::IdentStr;
 use move_core_types::language_storage::{StructTag, TypeTag};
 use move_core_types::value::{MoveStruct, MoveValue};
-use schemars::JsonSchema;
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::Value;
@@ -35,11 +34,10 @@ pub struct Field<N, V> {
 }
 
 #[serde_as]
-#[derive(Clone, Serialize, Deserialize, JsonSchema, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct DynamicFieldInfo {
     pub name: DynamicFieldName,
-    #[schemars(with = "Base58")]
     #[serde_as(as = "Readable<Base58, _>")]
     pub bcs_name: Vec<u8>,
     pub type_: DynamicFieldType,
@@ -50,15 +48,13 @@ pub struct DynamicFieldInfo {
 }
 
 #[serde_as]
-#[derive(Clone, Serialize, Deserialize, JsonSchema, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct DynamicFieldName {
-    #[schemars(with = "String")]
     #[serde_as(as = "Readable<SuiTypeTag, _>")]
     pub type_: TypeTag,
     // Bincode does not like serde_json::Value, rocksdb will not insert the value without serializing value as string.
     // TODO: investigate if this can be removed after switch to BCS.
-    #[schemars(with = "Value")]
     #[serde_as(as = "Readable<_, DisplayFromStr>")]
     pub value: Value,
 }
@@ -69,7 +65,7 @@ impl Display for DynamicFieldName {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize, JsonSchema, Ord, PartialOrd, Eq, PartialEq, Debug)]
+#[derive(Clone, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Debug)]
 pub enum DynamicFieldType {
     #[serde(rename_all = "camelCase")]
     DynamicField,

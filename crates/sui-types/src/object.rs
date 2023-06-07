@@ -11,7 +11,6 @@ use move_bytecode_utils::module_cache::GetModule;
 use move_core_types::language_storage::StructTag;
 use move_core_types::language_storage::TypeTag;
 use move_core_types::value::{MoveStruct, MoveStructLayout, MoveTypeLayout, MoveValue};
-use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use serde_with::Bytes;
@@ -476,7 +475,7 @@ impl Data {
 }
 
 #[derive(
-    Eq, PartialEq, Debug, Clone, Copy, Deserialize, Serialize, Hash, JsonSchema, Ord, PartialOrd,
+    Eq, PartialEq, Debug, Clone, Copy, Deserialize, Serialize, Hash, Ord, PartialOrd,
 )]
 pub enum Owner {
     /// Object is exclusively owned by a single address, and is mutable.

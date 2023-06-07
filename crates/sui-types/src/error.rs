@@ -10,7 +10,6 @@ use crate::{
     object::Owner,
 };
 
-use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use alloc::{collections::BTreeMap, fmt::Debug};
 use strum_macros::{AsRefStr, IntoStaticStr};
@@ -228,7 +227,6 @@ pub enum UserInputError {
     Hash,
     AsRefStr,
     IntoStaticStr,
-    JsonSchema,
     Error,
 )]
 #[serde(tag = "code", rename = "ObjectResponseError", rename_all = "camelCase")]

@@ -25,7 +25,6 @@ pub use fastcrypto::traits::{
     VerifyingKey,
 };
 use roaring::RoaringBitmap;
-use schemars::JsonSchema;
 use serde::ser::Serializer;
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_with::{serde_as, Bytes};
@@ -180,7 +179,7 @@ impl<'de> Deserialize<'de> for SuiKeyPair {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum PublicKey {
     Ed25519(Ed25519PublicKeyAsBytes),
     Secp256k1(Secp256k1PublicKeyAsBytes),
@@ -300,12 +299,10 @@ impl PublicKey {
     Ord,
     Serialize,
     Deserialize,
-    schemars::JsonSchema,
     AsRef,
 )]
 #[as_ref(forward)]
 pub struct AuthorityPublicKeyBytes(
-    #[schemars(with = "Base64")]
     #[serde_as(as = "Readable<Base64, Bytes>")]
     pub [u8; AuthorityPublicKey::LENGTH],
 );
@@ -347,7 +344,7 @@ impl Display for ConciseAuthorityPublicKeyBytesRef<'_> {
 }
 
 /// A wrapper around AuthorityPublicKeyBytes but owns it.
-#[derive(Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, schemars::JsonSchema)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ConciseAuthorityPublicKeyBytes(AuthorityPublicKeyBytes);
 
 impl Debug for ConciseAuthorityPublicKeyBytes {
@@ -453,7 +450,7 @@ where
 
 // Enums for signature scheme signatures
 #[enum_dispatch]
-#[derive(Clone, JsonSchema, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum Signature {
     Ed25519SuiSignature,
     Secp256k1SuiSignature,
@@ -612,11 +609,10 @@ impl SuiPublicKey for BLS12381PublicKey {
 //
 
 #[serde_as]
-#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema, PartialEq, Eq, Hash, AsRef, AsMut)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Hash, AsRef, AsMut)]
 #[as_ref(forward)]
 #[as_mut(forward)]
 pub struct Ed25519SuiSignature(
-    #[schemars(with = "Base64")]
     #[serde_as(as = "Readable<Base64, Bytes>")]
     [u8; Ed25519PublicKey::LENGTH + Ed25519Signature::LENGTH + 1],
 );
@@ -660,11 +656,10 @@ impl Signer<Signature> for Ed25519KeyPair {
 // Secp256k1 Sui Signature port
 //
 #[serde_as]
-#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema, PartialEq, Eq, Hash, AsRef, AsMut)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Hash, AsRef, AsMut)]
 #[as_ref(forward)]
 #[as_mut(forward)]
 pub struct Secp256k1SuiSignature(
-    #[schemars(with = "Base64")]
     #[serde_as(as = "Readable<Base64, Bytes>")]
     [u8; Secp256k1PublicKey::LENGTH + Secp256k1Signature::LENGTH + 1],
 );
@@ -701,11 +696,10 @@ impl Signer<Signature> for Secp256k1KeyPair {
 // Secp256r1 Sui Signature port
 //
 #[serde_as]
-#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema, PartialEq, Eq, Hash, AsRef, AsMut)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Hash, AsRef, AsMut)]
 #[as_ref(forward)]
 #[as_mut(forward)]
 pub struct Secp256r1SuiSignature(
-    #[schemars(with = "Base64")]
     #[serde_as(as = "Readable<Base64, Bytes>")]
     [u8; Secp256r1PublicKey::LENGTH + Secp256r1Signature::LENGTH + 1],
 );
@@ -816,12 +810,10 @@ pub struct EmptySignInfo {}
 /// the quorum is valid when the total stake is at least the validity threshold (f+1) of
 /// the committee.
 #[serde_as]
-#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AuthorityQuorumSignInfo<const STRONG_THRESHOLD: bool> {
     pub epoch: EpochId,
-    #[schemars(with = "Base64")]
     pub signature: AggregateAuthoritySignature,
-    #[schemars(with = "Base64")]
     #[serde_as(as = "SuiBitmap")]
     pub signers_map: RoaringBitmap,
 }
@@ -831,11 +823,10 @@ pub type AuthorityStrongQuorumSignInfo = AuthorityQuorumSignInfo<true>;
 // Variant of [AuthorityStrongQuorumSignInfo] but with a serialized signature, to be used in
 // external APIs.
 #[serde_as]
-#[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SuiAuthorityStrongQuorumSignInfo {
     pub epoch: EpochId,
     pub signature: AggregateAuthoritySignatureAsBytes,
-    #[schemars(with = "Base64")]
     #[serde_as(as = "SuiBitmap")]
     pub signers_map: RoaringBitmap,
 }
@@ -977,7 +968,7 @@ pub fn default_hash<S: Signable<DefaultHash>>(signable: &S) -> [u8; 32] {
     hash::<S, DefaultHash, 32>(signable)
 }
 
-#[derive(Deserialize, Serialize, JsonSchema, Debug, EnumString, strum_macros::Display)]
+#[derive(Deserialize, Serialize, Debug, EnumString, strum_macros::Display)]
 #[strum(serialize_all = "lowercase")]
 pub enum SignatureScheme {
     ED25519,
@@ -1023,7 +1014,7 @@ impl SignatureScheme {
 }
 
 /// Unlike [enum Signature], [enum CompressedSignature] does not contain public key.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum CompressedSignature {
     Ed25519(Ed25519SignatureAsBytes),
     Secp256k1(Secp256k1SignatureAsBytes),

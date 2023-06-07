@@ -26,7 +26,6 @@ use crate::{
     id::UID,
     SUI_FRAMEWORK_ADDRESS,
 };
-use schemars::JsonSchema;
 
 pub const COIN_MODULE_NAME: &IdentStr = ident_str!("coin");
 pub const COIN_STRUCT_NAME: &IdentStr = ident_str!("Coin");
@@ -39,7 +38,7 @@ pub const PAY_SPLIT_N_FUNC_NAME: &IdentStr = ident_str!("divide_and_keep");
 pub const PAY_SPLIT_VEC_FUNC_NAME: &IdentStr = ident_str!("split_vec");
 
 // Rust version of the Move sui::coin::Coin type
-#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema, Eq, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct Coin {
     pub id: UID,
     pub balance: Balance,
@@ -141,7 +140,7 @@ impl Coin {
 }
 
 // Rust version of the Move sui::coin::TreasuryCap type
-#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, JsonSchema)]
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct TreasuryCap {
     pub id: UID,
     pub total_supply: Supply,
@@ -181,7 +180,7 @@ impl TreasuryCap {
 // }
 
 // Rust version of the Move sui::coin::CoinMetadata type
-#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema, Eq, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct CoinMetadata {
     pub id: UID,
     /// Number of decimal places the coin uses.

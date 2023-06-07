@@ -10,7 +10,6 @@ use move_core_types::identifier::IdentStr;
 use move_core_types::identifier::Identifier;
 use move_core_types::language_storage::StructTag;
 use move_core_types::value::MoveStruct;
-use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use serde_with::serde_as;
@@ -39,11 +38,10 @@ pub struct EventEnvelope {
 /// Unique ID of a Sui Event, the ID is a combination of tx seq number and event seq number,
 /// the ID is local to this particular fullnode and will be different from other fullnode.
 #[serde_as]
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EventID {
     pub tx_digest: TransactionDigest,
-    #[schemars(with = "BigInt<u64>")]
     #[serde_as(as = "Readable<BigInt<u64>, _>")]
     pub event_seq: u64,
 }

@@ -40,7 +40,6 @@ use move_core_types::identifier::IdentStr;
 use move_core_types::language_storage::ModuleId;
 use move_core_types::language_storage::StructTag;
 use move_core_types::language_storage::TypeTag;
-use schemars::JsonSchema;
 use serde::ser::Error;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
@@ -61,7 +60,6 @@ use alloc::str::FromStr;
     Debug,
     Serialize,
     Deserialize,
-    JsonSchema,
 )]
 pub struct SequenceNumber(u64);
 
@@ -95,9 +93,8 @@ pub struct UserData(pub Option<[u8; 32]>);
 pub type AuthorityName = AuthorityPublicKeyBytes;
 
 #[serde_as]
-#[derive(Eq, PartialEq, Clone, Copy, PartialOrd, Ord, Hash, Serialize, Deserialize, JsonSchema)]
+#[derive(Eq, PartialEq, Clone, Copy, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct ObjectID(
-    #[schemars(with = "Hex")]
     #[serde_as(as = "Readable<HexAccountAddress, _>")]
     AccountAddress,
 );
@@ -421,10 +418,9 @@ pub const SUI_ADDRESS_LENGTH: usize = ObjectID::LENGTH;
 
 #[serde_as]
 #[derive(
-    Eq, Default, PartialEq, Ord, PartialOrd, Copy, Clone, Hash, Serialize, Deserialize, JsonSchema,
+    Eq, Default, PartialEq, Ord, PartialOrd, Copy, Clone, Hash, Serialize, Deserialize,
 )]
 pub struct SuiAddress(
-    #[schemars(with = "Hex")]
     #[serde_as(as = "Readable<Hex, _>")]
     [u8; SUI_ADDRESS_LENGTH],
 );
@@ -616,7 +612,7 @@ pub fn dbg_addr(name: u8) -> SuiAddress {
 }
 
 #[derive(
-    Eq, PartialEq, Ord, PartialOrd, Copy, Clone, Hash, Serialize, Deserialize, JsonSchema, Debug,
+    Eq, PartialEq, Ord, PartialOrd, Copy, Clone, Hash, Serialize, Deserialize, Debug,
 )]
 pub struct ExecutionDigests {
     pub transaction: TransactionDigest,

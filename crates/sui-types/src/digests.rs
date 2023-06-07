@@ -6,7 +6,6 @@ use alloc::fmt;
 use crate::sui_serde::Readable;
 use fastcrypto::encoding::{Base58, Encoding};
 use once_cell::sync::OnceCell;
-use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, Bytes};
 use sui_protocol_config::Chain;
@@ -14,10 +13,9 @@ use sui_protocol_config::Chain;
 /// A representation of a 32 byte digest
 #[serde_as]
 #[derive(
-    Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, JsonSchema,
+    Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize,
 )]
 pub struct Digest(
-    #[schemars(with = "Base58")]
     #[serde_as(as = "Readable<Base58, Bytes>")]
     [u8; 32],
 );
@@ -105,7 +103,7 @@ impl fmt::UpperHex for Digest {
 
 /// Representation of a network's identifier by the genesis checkpoint's digest
 #[derive(
-    Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, JsonSchema,
+    Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize,
 )]
 pub struct ChainIdentifier(CheckpointDigest);
 
@@ -169,7 +167,7 @@ impl From<CheckpointDigest> for ChainIdentifier {
 
 /// Representation of a Checkpoint's digest
 #[derive(
-    Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, JsonSchema,
+    Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize,
 )]
 pub struct CheckpointDigest(Digest);
 
@@ -249,7 +247,7 @@ impl alloc::str::FromStr for CheckpointDigest {
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, JsonSchema)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct CheckpointContentsDigest(Digest);
 
 impl CheckpointContentsDigest {
@@ -355,7 +353,7 @@ impl fmt::Debug for SenderSignedDataDigest {
 }
 
 /// A transaction will have a (unique) digest.
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, JsonSchema)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct TransactionDigest(Digest);
 
 impl Default for TransactionDigest {
@@ -460,7 +458,7 @@ impl alloc::str::FromStr for TransactionDigest {
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, JsonSchema)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct TransactionEffectsDigest(Digest);
 
 impl TransactionEffectsDigest {
@@ -534,7 +532,7 @@ impl fmt::UpperHex for TransactionEffectsDigest {
 }
 
 #[serde_as]
-#[derive(Eq, PartialEq, Ord, PartialOrd, Copy, Clone, Hash, Serialize, Deserialize, JsonSchema)]
+#[derive(Eq, PartialEq, Ord, PartialOrd, Copy, Clone, Hash, Serialize, Deserialize)]
 pub struct TransactionEventsDigest(Digest);
 
 impl TransactionEventsDigest {
@@ -554,7 +552,7 @@ impl fmt::Debug for TransactionEventsDigest {
 }
 
 // Each object has a unique digest
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, JsonSchema)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct ObjectDigest(Digest);
 
 impl ObjectDigest {

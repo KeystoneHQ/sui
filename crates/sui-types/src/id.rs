@@ -11,7 +11,6 @@ use move_core_types::{
     language_storage::StructTag,
     value::{MoveFieldLayout, MoveStructLayout, MoveTypeLayout},
 };
-use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 pub const OBJECT_MODULE_NAME_STR: &str = "object";
@@ -22,13 +21,13 @@ pub const RESOLVED_SUI_ID: (&AccountAddress, &IdentStr, &IdentStr) =
     (&SUI_FRAMEWORK_ADDRESS, OBJECT_MODULE_NAME, ID_STRUCT_NAME);
 
 /// Rust version of the Move sui::object::Info type
-#[derive(Debug, Serialize, Deserialize, JsonSchema, Clone, Eq, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct UID {
     pub id: ID,
 }
 
 /// Rust version of the Move sui::object::ID type
-#[derive(Debug, Serialize, Deserialize, JsonSchema, Clone, Eq, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 #[serde(transparent)]
 pub struct ID {
     pub bytes: ObjectID,

@@ -13,7 +13,6 @@ use fastcrypto::{
 };
 use once_cell::sync::OnceCell;
 use roaring::RoaringBitmap;
-use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use alloc::{
@@ -48,12 +47,11 @@ impl AsRef<[u8]> for MultiSig {
 
 /// The struct that contains signatures and public keys necessary for authenticating a MultiSig.
 #[serde_as]
-#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct MultiSig {
     /// The plain signature encoded with signature scheme.
     sigs: Vec<CompressedSignature>,
     /// A bitmap that indicates the position of which public key the signature should be authenticated with.
-    #[schemars(with = "Base64")]
     #[serde_as(as = "SuiBitmap")]
     bitmap: RoaringBitmap,
     /// The public key encoded with each public key with its signature scheme used along with the corresponding weight.
@@ -144,7 +142,7 @@ impl MultiSig {
     }
 }
 /// The struct that contains the public key used for authenticating a MultiSig.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct MultiSigPublicKey {
     /// A list of public key and its corresponding weight.
     pk_map: Vec<(PublicKey, WeightUnit)>,

@@ -9,7 +9,6 @@ use fastcrypto::{
     error::FastCryptoError,
     traits::{EncodeDecodeBase64, ToFromBytes},
 };
-use schemars::JsonSchema;
 use core::hash::Hash;
 #[derive(Default, Debug, Clone)]
 pub struct AuxVerifyData {
@@ -31,7 +30,7 @@ impl AuxVerifyData {
 /// enum where member can just implement a lightweight [trait AuthenticatorTrait].
 /// This way MultiSig (and future Authenticators) can implement its own `verify`.
 #[enum_dispatch(AuthenticatorTrait)]
-#[derive(Debug, Clone, PartialEq, Eq, JsonSchema, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum GenericSignature {
     MultiSig,
     Signature,

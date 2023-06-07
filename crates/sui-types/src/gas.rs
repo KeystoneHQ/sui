@@ -8,7 +8,6 @@ use crate::{
     error::{UserInputError, UserInputResult},
     object::Object,
 };
-use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 
@@ -39,24 +38,20 @@ sui_macros::checked_arithmetic! {
 /// storage_rebate + non_refundable_storage_fee`
 
 #[serde_as]
-#[derive(Eq, PartialEq, Clone, Debug, Default, Serialize, Deserialize, JsonSchema)]
+#[derive(Eq, PartialEq, Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GasCostSummary {
     /// Cost of computation/execution
-    #[schemars(with = "BigInt<u64>")]
     #[serde_as(as = "Readable<BigInt<u64>, _>")]
     pub computation_cost: u64,
     /// Storage cost, it's the sum of all storage cost for all objects created or mutated.
-    #[schemars(with = "BigInt<u64>")]
     #[serde_as(as = "Readable<BigInt<u64>, _>")]
     pub storage_cost: u64,
     /// The amount of storage cost refunded to the user for all objects deleted or mutated in the
     /// transaction.
-    #[schemars(with = "BigInt<u64>")]
     #[serde_as(as = "Readable<BigInt<u64>, _>")]
     pub storage_rebate: u64,
     /// The fee for the rebate. The portion of the storage rebate kept by the system.
-    #[schemars(with = "BigInt<u64>")]
     #[serde_as(as = "Readable<BigInt<u64>, _>")]
     pub non_refundable_storage_fee: u64,
 }

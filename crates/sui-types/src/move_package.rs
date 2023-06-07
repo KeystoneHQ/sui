@@ -28,7 +28,6 @@ use move_core_types::{
 };
 use move_disassembler::disassembler::Disassembler;
 use move_ir_types::location::Spanned;
-use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use serde_with::serde_as;
@@ -65,7 +64,7 @@ pub type FnInfoMap = BTreeMap<FnInfoKey, FnInfo>;
 
 /// Identifies a struct and the module it was defined in
 #[derive(
-    Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Deserialize, Serialize, Hash, JsonSchema,
+    Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Deserialize, Serialize, Hash,
 )]
 pub struct TypeOrigin {
     pub module_name: String,
@@ -74,7 +73,7 @@ pub struct TypeOrigin {
 }
 
 /// Upgraded package info for the linkage table
-#[derive(Eq, PartialEq, Debug, Clone, Deserialize, Serialize, Hash, JsonSchema)]
+#[derive(Eq, PartialEq, Debug, Clone, Deserialize, Serialize, Hash)]
 pub struct UpgradeInfo {
     /// ID of the upgraded packages
     pub upgraded_id: ObjectID,
