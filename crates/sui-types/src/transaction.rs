@@ -14,6 +14,7 @@ use alloc::boxed::Box;
 use alloc::string::{ToString, String};
 use alloc::vec::Vec;
 use alloc::{vec, format};
+use alloc::borrow::ToOwned;
 use enum_dispatch::enum_dispatch;
 use itertools::Either;
 use move_core_types::ident_str;

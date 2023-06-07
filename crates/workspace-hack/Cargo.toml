@@ -33,7 +33,7 @@ anemo-cli = { git = "https://github.com/mystenlabs/anemo.git", rev = "0f0ae8d8f2
 anemo-tower = { git = "https://github.com/mystenlabs/anemo.git", rev = "0f0ae8d8f222820a20b586088ea7a2941478a159", default-features = false }
 anes = { version = "0.1" }
 ansi_term = { version = "0.12", default-features = false }
-anyhow = { version = "1", default-features= false, features = ["backtrace"] }
+anyhow = { version = "1", features = ["backtrace"] }
 arbitrary = { version = "1", default-features = false, features = ["derive_arbitrary"] }
 arc-swap = { version = "1", default-features = false, features = ["serde"] }
 ark-bls12-381 = { version = "0.4" }
@@ -73,7 +73,8 @@ base16ct-c65f7effa3be6d31 = { package = "base16ct", version = "0.1", default-fea
 base64-594e8ee84c453af0 = { package = "base64", version = "0.13", features = ["alloc"] }
 base64-647d43efb71741da = { package = "base64", version = "0.21" }
 base64ct = { version = "1", default-features = false, features = ["alloc"] }
-bcs = { version = "0.1", default-features = false }
+bcs-307d833aec5ffd37 = { package = "bcs", git = "https://github.com/KeystoneHQ/bcs.git", tag = "0.1.0", default-features = false }
+bcs-c65f7effa3be6d31 = { package = "bcs", version = "0.1", default-features = false }
 beef = { version = "0.5", features = ["impl_serde"] }
 better_any = { version = "0.1", default-features = false }
 bimap = { version = "0.6" }
@@ -596,6 +597,7 @@ test-fuzz-runtime = { version = "3", default-features = false }
 textwrap-986da7b5efc2b80e = { package = "textwrap", version = "0.16", default-features = false }
 textwrap-a6292c17cd707f01 = { package = "textwrap", version = "0.11", default-features = false }
 thiserror = { version = "1", default-features = false }
+thiserror-core = { version = "1", default-features = false }
 thread_local = { version = "1", default-features = false }
 threadpool = { version = "1", default-features = false }
 time-468e82937335b1c9 = { package = "time", version = "0.3", features = ["formatting", "macros", "parsing"] }
@@ -752,7 +754,8 @@ base16ct-c65f7effa3be6d31 = { package = "base16ct", version = "0.1", default-fea
 base64-594e8ee84c453af0 = { package = "base64", version = "0.13", features = ["alloc"] }
 base64-647d43efb71741da = { package = "base64", version = "0.21" }
 base64ct = { version = "1", default-features = false, features = ["alloc"] }
-bcs = { version = "0.1", default-features = false }
+bcs-307d833aec5ffd37 = { package = "bcs", git = "https://github.com/KeystoneHQ/bcs.git", tag = "0.1.0", default-features = false }
+bcs-c65f7effa3be6d31 = { package = "bcs", version = "0.1", default-features = false }
 beef = { version = "0.5", features = ["impl_serde"] }
 better_any = { version = "0.1", default-features = false }
 better_typeid_derive = { version = "0.1", default-features = false }
@@ -1366,6 +1369,8 @@ test-fuzz-runtime = { version = "3", default-features = false }
 textwrap-986da7b5efc2b80e = { package = "textwrap", version = "0.16", default-features = false }
 textwrap-a6292c17cd707f01 = { package = "textwrap", version = "0.11", default-features = false }
 thiserror = { version = "1", default-features = false }
+thiserror-core = { version = "1", default-features = false }
+thiserror-core-impl = { version = "1", default-features = false }
 thiserror-impl = { version = "1", default-features = false }
 thread_local = { version = "1", default-features = false }
 threadpool = { version = "1", default-features = false }

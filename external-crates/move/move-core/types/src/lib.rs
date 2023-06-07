@@ -4,6 +4,8 @@
 
 //! Core types for Move.
 
+extern crate alloc;
+
 pub mod abi;
 pub mod account_address;
 pub mod effects;

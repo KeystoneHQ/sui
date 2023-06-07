@@ -33,7 +33,8 @@ use anyhow::{bail, Result};
 use proptest::prelude::*;
 use ref_cast::RefCast;
 use serde::{Deserialize, Serialize};
-use std::{borrow::Borrow, fmt, ops::Deref, str::FromStr};
+use alloc::{borrow::Borrow, fmt, str::FromStr, borrow::ToOwned};
+use core::ops::Deref;
 
 /// Return true if this character can appear in a Move identifier.
 ///
@@ -319,7 +320,7 @@ macro_rules! ident_str {
         // https://github.com/rust-lang/rust-clippy/issues/6372
         #[allow(clippy::transmute_ptr_to_ptr)]
         unsafe {
-            ::std::mem::transmute::<&'static str, &'static $crate::identifier::IdentStr>(s)
+            ::core::mem::transmute::<&'static str, &'static $crate::identifier::IdentStr>(s)
         }
     }};
 }

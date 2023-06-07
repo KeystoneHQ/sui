@@ -23,7 +23,6 @@ use crate::base_types::{MoveObjectType, ObjectIDParseError};
 use crate::coin::Coin;
 use crate::error::{ExecutionError, ExecutionErrorKind, UserInputError, UserInputResult};
 use crate::error::{SuiError, SuiResult};
-use crate::gas_coin::TOTAL_SUPPLY_MIST;
 use crate::is_system_package;
 use crate::move_package::MovePackage;
 use crate::type_resolver::LayoutResolver;
