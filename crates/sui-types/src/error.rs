@@ -4,7 +4,7 @@
 
 use crate::{
     base_types::*,
-    committee::{Committee, EpochId, StakeUnit},
+    committee::{EpochId, StakeUnit},
     digests::CheckpointContentsDigest,
     execution_status::CommandArgumentError,
     object::Owner,
@@ -39,20 +39,6 @@ macro_rules! fp_ensure {
 use crate::digests::TransactionEventsDigest;
 use crate::execution_status::{CommandIndex, ExecutionFailureStatus};
 pub(crate) use fp_ensure;
-
-// #[macro_export]
-// macro_rules! exit_main {
-//     ($result:expr) => {
-//         match $result {
-//             Ok(_) => (),
-//             Err(err) => {
-//                 let err = format!("{:?}", err);
-//                 println!("{}", err.bold().red());
-//                 std::process::exit(1);
-//             }
-//         }
-//     };
-// }
 
 #[macro_export]
 macro_rules! make_invariant_violation {
@@ -308,11 +294,10 @@ pub enum SuiError {
     SignerSignatureNumberMismatch { expected: usize, actual: usize },
     #[error("Value was not signed by the correct sender: {}", error)]
     IncorrectSigner { error: String },
-    #[error("Value was not signed by a known authority. signer: {:?}, index: {:?}, committee: {committee}", signer, index)]
+    #[error("Value was not signed by a known authority. signer: {:?}, index: {:?}", signer, index)]
     UnknownSigner {
         signer: Option<String>,
         index: Option<u32>,
-        committee: Box<Committee>,
     },
     #[error(
         "Validator {:?} responded multiple signatures for the same message, conflicting: {:?}",

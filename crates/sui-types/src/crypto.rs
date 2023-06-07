@@ -1134,7 +1134,6 @@ where
 mod bcs_signable {
 
     pub trait BcsSignable: serde::Serialize + serde::de::DeserializeOwned {}
-    impl BcsSignable for crate::committee::Committee {}
 
     impl BcsSignable for crate::effects::TransactionEffects {}
     impl BcsSignable for crate::effects::TransactionEvents {}
@@ -1151,7 +1150,7 @@ mod bcs_signable {
 impl<T, W> Signable<W> for T
 where
     T: bcs_signable::BcsSignable,
-    W: std::io::Write,
+    W: core2::io::Write,
 {
     fn write(&self, writer: &mut W) {
         let name = serde_name::trace_name::<Self>().expect("Self must be a struct or an enum");
@@ -1163,7 +1162,7 @@ where
 
 impl<W> Signable<W> for EpochId
 where
-    W: std::io::Write,
+    W: core2::io::Write,
 {
     fn write(&self, writer: &mut W) {
         bcs::serialize_into(writer, &self).expect("Message serialization should not fail");
