@@ -6,7 +6,6 @@ use move_binary_format::file_format::{CodeOffset, TypeParameterIndex};
 use move_core_types::language_storage::ModuleId;
 use serde::{Deserialize, Serialize};
 use alloc::fmt::{Display, Formatter};
-use sui_macros::EnumVariantOrder;
 use thiserror::Error;
 
 #[derive(Eq, PartialEq, Clone, Debug, Serialize, Deserialize)]
@@ -21,7 +20,7 @@ pub enum ExecutionStatus {
     },
 }
 
-#[derive(Eq, PartialEq, Clone, Debug, Serialize, Deserialize, Error, EnumVariantOrder)]
+#[derive(Eq, PartialEq, Clone, Debug, Serialize, Deserialize, Error)]
 pub enum ExecutionFailureStatus {
     //
     // General transaction errors
