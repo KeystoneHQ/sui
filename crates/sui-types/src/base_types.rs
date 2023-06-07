@@ -632,13 +632,6 @@ impl ExecutionDigests {
             effects,
         }
     }
-
-    pub fn random() -> Self {
-        Self {
-            transaction: TransactionDigest::random(),
-            effects: TransactionEffectsDigest::random(),
-        }
-    }
 }
 
 pub const STD_OPTION_MODULE_NAME: &IdentStr = ident_str!("option");

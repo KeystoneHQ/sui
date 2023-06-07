@@ -29,16 +29,6 @@ impl Digest {
         Self(digest)
     }
 
-    pub fn generate<R: rand::RngCore + rand::CryptoRng>(mut rng: R) -> Self {
-        let mut bytes = [0; 32];
-        rng.fill_bytes(&mut bytes);
-        Self(bytes)
-    }
-
-    pub fn random() -> Self {
-        Self::generate(rand::thread_rng())
-    }
-
     pub const fn inner(&self) -> &[u8; 32] {
         &self.0
     }
@@ -188,14 +178,6 @@ impl CheckpointDigest {
         Self(Digest::new(digest))
     }
 
-    pub fn generate<R: rand::RngCore + rand::CryptoRng>(rng: R) -> Self {
-        Self(Digest::generate(rng))
-    }
-
-    pub fn random() -> Self {
-        Self(Digest::random())
-    }
-
     pub const fn inner(&self) -> &[u8; 32] {
         self.0.inner()
     }
@@ -275,14 +257,6 @@ impl CheckpointContentsDigest {
         Self(Digest::new(digest))
     }
 
-    pub fn generate<R: rand::RngCore + rand::CryptoRng>(rng: R) -> Self {
-        Self(Digest::generate(rng))
-    }
-
-    pub fn random() -> Self {
-        Self(Digest::random())
-    }
-
     pub const fn inner(&self) -> &[u8; 32] {
         self.0.inner()
     }
@@ -354,10 +328,6 @@ impl CertificateDigest {
     pub const fn new(digest: [u8; 32]) -> Self {
         Self(Digest::new(digest))
     }
-
-    pub fn random() -> Self {
-        Self(Digest::random())
-    }
 }
 
 impl fmt::Debug for CertificateDigest {
@@ -406,14 +376,6 @@ impl TransactionDigest {
     // TODO(https://github.com/MystenLabs/sui/issues/65): we can pick anything here
     pub const fn genesis() -> Self {
         Self::ZERO
-    }
-
-    pub fn generate<R: rand::RngCore + rand::CryptoRng>(rng: R) -> Self {
-        Self(Digest::generate(rng))
-    }
-
-    pub fn random() -> Self {
-        Self(Digest::random())
     }
 
     pub fn inner(&self) -> &[u8; 32] {
@@ -508,14 +470,6 @@ impl TransactionEffectsDigest {
         Self(Digest::new(digest))
     }
 
-    pub fn generate<R: rand::RngCore + rand::CryptoRng>(rng: R) -> Self {
-        Self(Digest::generate(rng))
-    }
-
-    pub fn random() -> Self {
-        Self(Digest::random())
-    }
-
     pub const fn inner(&self) -> &[u8; 32] {
         self.0.inner()
     }
@@ -589,10 +543,6 @@ impl TransactionEventsDigest {
     pub const fn new(digest: [u8; 32]) -> Self {
         Self(Digest::new(digest))
     }
-
-    pub fn random() -> Self {
-        Self(Digest::random())
-    }
 }
 
 impl fmt::Debug for TransactionEventsDigest {
@@ -623,14 +573,6 @@ impl ObjectDigest {
 
     pub const fn new(digest: [u8; 32]) -> Self {
         Self(Digest::new(digest))
-    }
-
-    pub fn generate<R: rand::RngCore + rand::CryptoRng>(rng: R) -> Self {
-        Self(Digest::generate(rng))
-    }
-
-    pub fn random() -> Self {
-        Self(Digest::random())
     }
 
     pub const fn inner(&self) -> &[u8; 32] {
