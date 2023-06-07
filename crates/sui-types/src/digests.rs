@@ -1,7 +1,7 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-use alloc::fmt;
+use alloc::{fmt, string::String};
 
 use crate::sui_serde::Readable;
 use fastcrypto::encoding::{Base58, Encoding};

@@ -2,7 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use core::convert::TryFrom;
+use alloc::borrow::ToOwned;
+use alloc::boxed::Box;
 use alloc::fmt::{Debug, Display, Formatter};
+use alloc::string::ToString;
+use alloc::vec::Vec;
 use core::mem::size_of;
 
 use move_binary_format::CompiledModule;
@@ -831,147 +835,6 @@ impl Object {
                 Data::Package(_) => 0,
             })
     }
-
-    pub fn immutable_with_id_for_testing(id: ObjectID) -> Self {
-        let data = Data::Move(MoveObject {
-            type_: GasCoin::type_().into(),
-            has_public_transfer: true,
-            version: OBJECT_START_VERSION,
-            contents: GasCoin::new(id, GAS_VALUE_FOR_TESTING).to_bcs_bytes(),
-        });
-        Self {
-            owner: Owner::Immutable,
-            data,
-            previous_transaction: TransactionDigest::genesis(),
-            storage_rebate: 0,
-        }
-    }
-
-    pub fn immutable_for_testing() -> Self {
-        thread_local! {
-            static IMMUTABLE_OBJECT_ID: ObjectID = ObjectID::random();
-        }
-
-        Self::immutable_with_id_for_testing(IMMUTABLE_OBJECT_ID.with(|id| *id))
-    }
-
-    /// make a test shared object.
-    pub fn shared_for_testing() -> Object {
-        thread_local! {
-            static SHARED_OBJECT_ID: ObjectID = ObjectID::random();
-        }
-
-        let obj =
-            MoveObject::new_gas_coin(OBJECT_START_VERSION, SHARED_OBJECT_ID.with(|id| *id), 10);
-        let owner = Owner::Shared {
-            initial_shared_version: obj.version(),
-        };
-        Object::new_move(obj, owner, TransactionDigest::genesis())
-    }
-
-    pub fn with_id_owner_gas_for_testing(id: ObjectID, owner: SuiAddress, gas: u64) -> Self {
-        let data = Data::Move(MoveObject {
-            type_: GasCoin::type_().into(),
-            has_public_transfer: true,
-            version: OBJECT_START_VERSION,
-            contents: GasCoin::new(id, gas).to_bcs_bytes(),
-        });
-        Self {
-            owner: Owner::AddressOwner(owner),
-            data,
-            previous_transaction: TransactionDigest::genesis(),
-            storage_rebate: 0,
-        }
-    }
-
-    pub fn with_object_owner_for_testing(id: ObjectID, owner: ObjectID) -> Self {
-        let data = Data::Move(MoveObject {
-            type_: GasCoin::type_().into(),
-            has_public_transfer: true,
-            version: OBJECT_START_VERSION,
-            contents: GasCoin::new(id, GAS_VALUE_FOR_TESTING).to_bcs_bytes(),
-        });
-        Self {
-            owner: Owner::ObjectOwner(owner.into()),
-            data,
-            previous_transaction: TransactionDigest::genesis(),
-            storage_rebate: 0,
-        }
-    }
-
-    pub fn with_id_owner_for_testing(id: ObjectID, owner: SuiAddress) -> Self {
-        // For testing, we provide sufficient gas by default.
-        Self::with_id_owner_gas_for_testing(id, owner, GAS_VALUE_FOR_TESTING)
-    }
-
-    pub fn with_id_owner_version_for_testing(
-        id: ObjectID,
-        version: SequenceNumber,
-        owner: SuiAddress,
-    ) -> Self {
-        let data = Data::Move(MoveObject {
-            type_: GasCoin::type_().into(),
-            has_public_transfer: true,
-            version,
-            contents: GasCoin::new(id, GAS_VALUE_FOR_TESTING).to_bcs_bytes(),
-        });
-        Self {
-            owner: Owner::AddressOwner(owner),
-            data,
-            previous_transaction: TransactionDigest::genesis(),
-            storage_rebate: 0,
-        }
-    }
-
-    pub fn with_owner_for_testing(owner: SuiAddress) -> Self {
-        Self::with_id_owner_for_testing(ObjectID::random(), owner)
-    }
-
-    /// Generate a new gas coin worth `value` with a random object ID and owner
-    /// For testing purposes only
-    pub fn new_gas_with_balance_and_owner_for_testing(value: u64, owner: SuiAddress) -> Self {
-        let obj = MoveObject::new_gas_coin(OBJECT_START_VERSION, ObjectID::random(), value);
-        Object::new_move(
-            obj,
-            Owner::AddressOwner(owner),
-            TransactionDigest::genesis(),
-        )
-    }
-}
-
-/// Make a few test gas objects (all with the same owner).
-pub fn generate_test_gas_objects_with_owner(count: usize, owner: SuiAddress) -> Vec<Object> {
-    (0..count)
-        .map(|_i| {
-            let gas_object_id = ObjectID::random();
-            Object::with_id_owner_gas_for_testing(gas_object_id, owner, GAS_VALUE_FOR_TESTING)
-        })
-        .collect()
-}
-
-/// Make a few test gas objects (all with the same owner).
-pub fn generate_test_gas_objects_with_owner_and_value(
-    count: usize,
-    owner: SuiAddress,
-    value: u64,
-) -> Vec<Object> {
-    (0..count)
-        .map(|_i| {
-            let gas_object_id = ObjectID::random();
-            Object::with_id_owner_gas_for_testing(gas_object_id, owner, value)
-        })
-        .collect()
-}
-
-/// Make a few test gas objects (all with the same owner) with TOTAL_SUPPLY_MIST / count balance
-pub fn generate_max_test_gas_objects_with_owner(count: u64, owner: SuiAddress) -> Vec<Object> {
-    let coin_size = TOTAL_SUPPLY_MIST / count;
-    (0..count)
-        .map(|_i| {
-            let gas_object_id = ObjectID::random();
-            Object::with_id_owner_gas_for_testing(gas_object_id, owner, coin_size)
-        })
-        .collect()
 }
 
 #[allow(clippy::large_enum_variant)]

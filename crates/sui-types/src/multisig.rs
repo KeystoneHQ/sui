@@ -15,9 +15,8 @@ use once_cell::sync::OnceCell;
 use roaring::RoaringBitmap;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
-use alloc::{
-    str::FromStr,
-};
+use alloc::{str::FromStr, string::ToString, format};
+use alloc::vec::Vec;
 use core::hash::{Hash, Hasher};
 use crate::{
     crypto::{PublicKey, Signature},

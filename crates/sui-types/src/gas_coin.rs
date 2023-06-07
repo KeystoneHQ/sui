@@ -9,7 +9,7 @@ use move_core_types::{
 };
 use serde::{Deserialize, Serialize};
 use core::convert::{TryFrom, TryInto};
-use alloc::fmt::{Display, Formatter};
+use alloc::{fmt::{Display, Formatter}, borrow::ToOwned, vec::Vec, boxed::Box, format};
 
 use crate::{
     balance::Balance,

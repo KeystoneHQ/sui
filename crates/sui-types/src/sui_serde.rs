@@ -1,9 +1,11 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-use alloc::fmt;
+use alloc::vec::Vec;
+use alloc::{fmt, format, vec};
 use alloc::fmt::Write;
 use alloc::fmt::{Debug, Display, Formatter};
+use alloc::string::{ToString, String};
 use core::marker::PhantomData;
 use core::ops::Deref;
 use alloc::str::FromStr;

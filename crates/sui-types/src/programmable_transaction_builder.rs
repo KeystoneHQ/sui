@@ -4,6 +4,7 @@
 //! Utility for generating programmable transactions, either by specifying a command or for
 //! migrating legacy transactions
 
+use alloc::{vec, vec::Vec, boxed::Box, borrow::ToOwned};
 use anyhow::Context;
 use indexmap::IndexMap;
 use move_core_types::{ident_str, identifier::Identifier, language_storage::TypeTag};

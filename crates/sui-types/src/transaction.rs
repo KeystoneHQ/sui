@@ -10,6 +10,10 @@ use crate::{
     SUI_CLOCK_OBJECT_ID, SUI_CLOCK_OBJECT_SHARED_VERSION, SUI_FRAMEWORK_PACKAGE_ID,
     SUI_SYSTEM_STATE_OBJECT_ID, SUI_SYSTEM_STATE_OBJECT_SHARED_VERSION,
 };
+use alloc::boxed::Box;
+use alloc::string::{ToString, String};
+use alloc::vec::Vec;
+use alloc::{vec, format};
 use enum_dispatch::enum_dispatch;
 use itertools::Either;
 use move_core_types::ident_str;

@@ -1,8 +1,12 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
+use alloc::format;
 use alloc::str::FromStr;
 
+use alloc::string::String;
+use alloc::string::ToString;
+use alloc::vec::Vec;
 use anyhow::ensure;
 use move_bytecode_utils::module_cache::GetModule;
 use move_core_types::account_address::AccountAddress;

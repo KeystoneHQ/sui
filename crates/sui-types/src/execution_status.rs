@@ -5,7 +5,7 @@ use crate::ObjectID;
 use move_binary_format::file_format::{CodeOffset, TypeParameterIndex};
 use move_core_types::language_storage::ModuleId;
 use serde::{Deserialize, Serialize};
-use alloc::fmt::{Display, Formatter};
+use alloc::{fmt::{Display, Formatter}, string::String, vec::Vec};
 use thiserror::Error;
 
 #[derive(Eq, PartialEq, Clone, Debug, Serialize, Deserialize)]

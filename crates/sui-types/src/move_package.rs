@@ -10,6 +10,10 @@ use crate::{
     object::OBJECT_START_VERSION,
     SUI_FRAMEWORK_ADDRESS,
 };
+use alloc::borrow::ToOwned;
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
+use alloc::vec;
 use derive_more::Display;
 use fastcrypto::hash::HashFunction;
 use move_binary_format::file_format::CompiledModule;

@@ -1,6 +1,7 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
+use alloc::{string::String, borrow::ToOwned, vec, vec::Vec, format, boxed::Box};
 use move_core_types::{
     ident_str,
     identifier::IdentStr,

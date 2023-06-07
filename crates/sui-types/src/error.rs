@@ -11,7 +11,7 @@ use crate::{
 };
 
 use serde::{Deserialize, Serialize};
-use alloc::{collections::BTreeMap, fmt::Debug};
+use alloc::{collections::BTreeMap, fmt::Debug, string::{String, ToString}, vec::Vec, borrow::ToOwned, boxed::Box};
 use strum_macros::{AsRefStr, IntoStaticStr};
 use thiserror::Error;
 use tonic::Status;

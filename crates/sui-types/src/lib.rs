@@ -1,17 +1,12 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
-#![warn(
-    future_incompatible,
-    nonstandard_style,
-    rust_2018_idioms,
-    rust_2021_compatibility
-)]
-// #![no_std]
+#![no_std]
+#![feature(error_in_core)]
 
 extern crate alloc;
 
 use alloc::format;
-use alloc::string::String;
+use alloc::string::{String, ToString};
 use base_types::{SequenceNumber, SuiAddress};
 use move_binary_format::binary_views::BinaryIndexedView;
 use move_binary_format::file_format::{AbilitySet, SignatureToken};
