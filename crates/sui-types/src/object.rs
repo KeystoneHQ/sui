@@ -32,7 +32,6 @@ use crate::{
     },
     gas_coin::GasCoin,
 };
-use sui_protocol_config::ProtocolConfig;
 
 pub const GAS_VALUE_FOR_TESTING: u64 = 300_000_000_000_000;
 pub const OBJECT_START_VERSION: SequenceNumber = SequenceNumber::from_u64(1);
@@ -79,32 +78,6 @@ impl ObjectFormatOptions {
 }
 
 impl MoveObject {
-    /// Creates a new Move object of type `type_` with BCS encoded bytes in `contents`
-    /// `has_public_transfer` is determined by the abilities of the `type_`, but resolving
-    /// the abilities requires the compiled modules of the `type_: StructTag`.
-    /// In other words, `has_public_transfer` will be the same for all objects of the same `type_`.
-    ///
-    /// # Safety
-    ///
-    /// This function should ONLY be called if has_public_transfer has been determined by the type_.
-    /// Yes, this is a bit of an abuse of the `unsafe` marker, but bad things will happen if this
-    /// is inconsistent
-    pub unsafe fn new_from_execution(
-        type_: MoveObjectType,
-        has_public_transfer: bool,
-        version: SequenceNumber,
-        contents: Vec<u8>,
-        protocol_config: &ProtocolConfig,
-    ) -> Result<Self, ExecutionError> {
-        Self::new_from_execution_with_limit(
-            type_,
-            has_public_transfer,
-            version,
-            contents,
-            protocol_config.max_move_object_size(),
-        )
-    }
-
     /// # Safety
     /// This function should ONLY be called if has_public_transfer has been determined by the type_
     pub unsafe fn new_from_execution_with_limit(
@@ -229,40 +202,6 @@ impl MoveObject {
     #[cfg(test)]
     pub fn type_specific_contents(&self) -> &[u8] {
         &self.contents[ID_END_INDEX..]
-    }
-
-    /// Update the contents of this object but does not increment its version
-    pub fn update_contents(
-        &mut self,
-        new_contents: Vec<u8>,
-        protocol_config: &ProtocolConfig,
-    ) -> Result<(), ExecutionError> {
-        self.update_contents_with_limit(new_contents, protocol_config.max_move_object_size())
-    }
-
-    fn update_contents_with_limit(
-        &mut self,
-        new_contents: Vec<u8>,
-        max_move_object_size: u64,
-    ) -> Result<(), ExecutionError> {
-        if new_contents.len() as u64 > max_move_object_size {
-            return Err(ExecutionError::from_kind(
-                ExecutionErrorKind::MoveObjectTooBig {
-                    object_size: new_contents.len() as u64,
-                    max_object_size: max_move_object_size,
-                },
-            ));
-        }
-
-        #[cfg(debug_assertions)]
-        let old_id = self.id();
-        self.contents = new_contents;
-
-        // Update should not modify ID
-        #[cfg(debug_assertions)]
-        debug_assert_eq!(self.id(), old_id);
-
-        Ok(())
     }
 
     /// Sets the version of this object to a new value which is assumed to be higher (and checked to
@@ -644,39 +583,6 @@ impl Object {
             )?),
             previous_transaction,
         ))
-    }
-
-    pub fn new_upgraded_package<'p>(
-        previous_package: &MovePackage,
-        new_package_id: ObjectID,
-        modules: &[CompiledModule],
-        previous_transaction: TransactionDigest,
-        protocol_config: &ProtocolConfig,
-        dependencies: impl IntoIterator<Item = &'p MovePackage>,
-    ) -> Result<Self, ExecutionError> {
-        Ok(Self::new_package_from_data(
-            Data::Package(previous_package.new_upgraded(
-                new_package_id,
-                modules,
-                protocol_config,
-                dependencies,
-            )?),
-            previous_transaction,
-        ))
-    }
-
-    pub fn new_package_for_testing(
-        modules: &[CompiledModule],
-        previous_transaction: TransactionDigest,
-        dependencies: impl IntoIterator<Item = MovePackage>,
-    ) -> Result<Self, ExecutionError> {
-        let dependencies: Vec<_> = dependencies.into_iter().collect();
-        Self::new_package(
-            modules,
-            previous_transaction,
-            ProtocolConfig::get_for_max_version().max_move_package_size(),
-            &dependencies,
-        )
     }
 
     pub fn is_immutable(&self) -> bool {

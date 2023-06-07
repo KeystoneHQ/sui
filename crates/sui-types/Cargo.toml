@@ -39,7 +39,6 @@ move-disassembler.workspace = true
 move-ir-types.workspace = true
 move-vm-types.workspace = true
 
-sui-protocol-config = { path = "../sui-protocol-config" }
 sui-macros = { path = "../sui-macros" }
 
 fastcrypto = { workspace = true, features = ["copy_key"] }

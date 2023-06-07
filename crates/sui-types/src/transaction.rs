@@ -3,7 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use super::{base_types::*, error::*};
-use crate::committee::{EpochId, ProtocolVersion};
+use crate::committee::EpochId;
+use crate::sui_protocol_config::ProtocolVersion;
 use crate::object::{MoveObject, Object, Owner};
 use crate::programmable_transaction_builder::ProgrammableTransactionBuilder;
 use crate::{
@@ -11,9 +12,9 @@ use crate::{
     SUI_SYSTEM_STATE_OBJECT_ID, SUI_SYSTEM_STATE_OBJECT_SHARED_VERSION,
 };
 use alloc::boxed::Box;
-use alloc::string::{ToString, String};
+use alloc::string::String;
 use alloc::vec::Vec;
-use alloc::{vec, format};
+use alloc::vec;
 use alloc::borrow::ToOwned;
 use enum_dispatch::enum_dispatch;
 use itertools::Either;
@@ -32,7 +33,6 @@ use core::{
     iter,
 };
 use strum::IntoStaticStr;
-use sui_protocol_config::{ProtocolConfig, SupportedProtocolVersions};
 
 // TODO: The following constants appear to be very large.
 // We should revisit them.
@@ -83,47 +83,6 @@ pub enum ObjectArg {
         initial_shared_version: SequenceNumber,
         mutable: bool,
     },
-}
-
-fn type_tag_validity_check(
-    tag: &TypeTag,
-    config: &ProtocolConfig,
-    depth: u32,
-    starting_count: usize,
-) -> UserInputResult<usize> {
-    fp_ensure!(
-        depth < config.max_type_argument_depth(),
-        UserInputError::SizeLimitExceeded {
-            limit: "maximum type argument depth in a call transaction".to_string(),
-            value: config.max_type_argument_depth().to_string()
-        }
-    );
-    let count = 1 + match tag {
-        TypeTag::Bool
-        | TypeTag::U8
-        | TypeTag::U64
-        | TypeTag::U128
-        | TypeTag::Address
-        | TypeTag::Signer
-        | TypeTag::U16
-        | TypeTag::U32
-        | TypeTag::U256 => 0,
-        TypeTag::Vector(t) => {
-            type_tag_validity_check(t.as_ref(), config, depth + 1, starting_count + 1)?
-        }
-        TypeTag::Struct(s) => s.type_params.iter().try_fold(0, |accum, t| {
-            let count = accum + type_tag_validity_check(t, config, depth + 1, starting_count + 1)?;
-            fp_ensure!(
-                count + starting_count < config.max_type_arguments() as usize,
-                UserInputError::SizeLimitExceeded {
-                    limit: "maximum type arguments in a call transaction".to_string(),
-                    value: config.max_type_arguments().to_string()
-                }
-            );
-            Ok(count)
-        })?,
-    };
-    Ok(count)
 }
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Serialize, Deserialize)]
@@ -177,19 +136,6 @@ pub enum TransactionKind {
     ProgrammableTransaction(ProgrammableTransaction),
 }
 
-impl VersionedProtocolMessage for TransactionKind {
-    fn check_version_supported(&self, _protocol_config: &ProtocolConfig) -> SuiResult {
-        // This code does nothing right now - it exists to cause a compiler error when new
-        // enumerants are added to TransactionKind.
-        //
-        // When we add new cases here, check that current_protocol_version does not pre-date the
-        // addition of that enumerant.
-        match &self {
-            TransactionKind::ProgrammableTransaction(_) => Ok(()),
-        }
-    }
-}
-
 impl CallArg {
     fn input_objects(&self) -> Vec<InputObjectKind> {
         match self {
@@ -214,21 +160,6 @@ impl CallArg {
         }
     }
 
-    pub fn validity_check(&self, config: &ProtocolConfig) -> UserInputResult {
-        match self {
-            CallArg::Pure(p) => {
-                fp_ensure!(
-                    p.len() < config.max_pure_argument_size() as usize,
-                    UserInputError::SizeLimitExceeded {
-                        limit: "maximum pure argument size".to_string(),
-                        value: config.max_pure_argument_size().to_string()
-                    }
-                );
-            }
-            CallArg::Object(_) => (),
-        }
-        Ok(())
-    }
 }
 
 impl From<bool> for CallArg {
@@ -415,34 +346,6 @@ impl ProgrammableMoveCall {
             .map(InputObjectKind::MovePackage)
             .collect()
     }
-
-    pub fn validity_check(&self, config: &ProtocolConfig) -> UserInputResult {
-        let is_blocked = BLOCKED_MOVE_FUNCTIONS.contains(&(
-            self.package,
-            self.module.as_str(),
-            self.function.as_str(),
-        ));
-        fp_ensure!(!is_blocked, UserInputError::BlockedMoveFunction);
-        let mut type_arguments_count = 0;
-        for tag in self.type_arguments.iter() {
-            type_arguments_count += type_tag_validity_check(tag, config, 1, type_arguments_count)?;
-            fp_ensure!(
-                type_arguments_count < config.max_type_arguments() as usize,
-                UserInputError::SizeLimitExceeded {
-                    limit: "maximum type arguments in a call transaction".to_string(),
-                    value: config.max_type_arguments().to_string()
-                }
-            );
-        }
-        fp_ensure!(
-            self.arguments.len() < config.max_arguments() as usize,
-            UserInputError::SizeLimitExceeded {
-                limit: "maximum arguments in a move call".to_string(),
-                value: config.max_arguments().to_string()
-            }
-        );
-        Ok(())
-    }
 }
 
 impl Command {
@@ -500,73 +403,6 @@ impl Command {
             | Command::MakeMoveVec(_, _) => None,
         }
     }
-
-    fn validity_check(&self, config: &ProtocolConfig) -> UserInputResult {
-        match self {
-            Command::MoveCall(call) => call.validity_check(config)?,
-            Command::TransferObjects(args, _)
-            | Command::MergeCoins(_, args)
-            | Command::SplitCoins(_, args) => {
-                fp_ensure!(!args.is_empty(), UserInputError::EmptyCommandInput);
-                fp_ensure!(
-                    args.len() < config.max_arguments() as usize,
-                    UserInputError::SizeLimitExceeded {
-                        limit: "maximum arguments in a programmable transaction command"
-                            .to_string(),
-                        value: config.max_arguments().to_string()
-                    }
-                );
-            }
-            Command::MakeMoveVec(ty_opt, args) => {
-                // ty_opt.is_none() ==> !args.is_empty()
-                fp_ensure!(
-                    ty_opt.is_some() || !args.is_empty(),
-                    UserInputError::EmptyCommandInput
-                );
-                if let Some(ty) = ty_opt {
-                    let type_arguments_count = type_tag_validity_check(ty, config, 1, 0)?;
-                    fp_ensure!(
-                        type_arguments_count < config.max_type_arguments() as usize,
-                        UserInputError::SizeLimitExceeded {
-                            limit: "maximum type arguments in a call transaction".to_string(),
-                            value: config.max_type_arguments().to_string()
-                        }
-                    );
-                }
-                fp_ensure!(
-                    args.len() < config.max_arguments() as usize,
-                    UserInputError::SizeLimitExceeded {
-                        limit: "maximum arguments in a programmable transaction command"
-                            .to_string(),
-                        value: config.max_arguments().to_string()
-                    }
-                );
-            }
-            Command::Publish(modules, _dep_ids) => {
-                fp_ensure!(!modules.is_empty(), UserInputError::EmptyCommandInput);
-                fp_ensure!(
-                    modules.len() < config.max_modules_in_publish() as usize,
-                    UserInputError::SizeLimitExceeded {
-                        limit: "maximum modules in a programmable transaction publish command"
-                            .to_string(),
-                        value: config.max_modules_in_publish().to_string()
-                    }
-                );
-            }
-            Command::Upgrade(modules, _, _, _) => {
-                fp_ensure!(!modules.is_empty(), UserInputError::EmptyCommandInput);
-                fp_ensure!(
-                    modules.len() < config.max_modules_in_publish() as usize,
-                    UserInputError::SizeLimitExceeded {
-                        limit: "maximum modules in a programmable transaction upgrade command"
-                            .to_string(),
-                        value: config.max_modules_in_publish().to_string()
-                    }
-                );
-            }
-        };
-        Ok(())
-    }
 }
 
 fn write_sep<T: Display>(
@@ -605,24 +441,6 @@ impl ProgrammableTransaction {
             .into_iter()
             .chain(command_input_objects)
             .collect())
-    }
-
-    fn validity_check(&self, config: &ProtocolConfig) -> UserInputResult {
-        let ProgrammableTransaction { inputs, commands } = self;
-        fp_ensure!(
-            commands.len() < config.max_programmable_tx_commands() as usize,
-            UserInputError::SizeLimitExceeded {
-                limit: "maximum commands in a programmable transaction".to_string(),
-                value: config.max_programmable_tx_commands().to_string()
-            }
-        );
-        for input in inputs {
-            input.validity_check(config)?
-        }
-        for command in commands {
-            command.validity_check(config)?
-        }
-        Ok(())
     }
 
     fn shared_input_objects(&self) -> impl Iterator<Item = SharedInputObject> + '_ {
@@ -836,13 +654,6 @@ impl TransactionKind {
         }
     }
 
-    pub fn validity_check(&self, config: &ProtocolConfig) -> UserInputResult {
-        match self {
-            TransactionKind::ProgrammableTransaction(p) => p.validity_check(config)?,
-        };
-        Ok(())
-    }
-
     /// number of commands, or 0 if it is a system transaction
     pub fn num_commands(&self) -> usize {
         match self {
@@ -898,33 +709,6 @@ impl VersionedProtocolMessage for TransactionData {
         Some(match self {
             Self::V1(_) => 1,
         })
-    }
-
-    fn check_version_supported(&self, protocol_config: &ProtocolConfig) -> SuiResult {
-        // First check the gross version
-        let (message_version, supported) = match self {
-            Self::V1(_) => (1, SupportedProtocolVersions::new_for_message(1, u64::MAX)),
-            // Suppose we add V2 at protocol version 7, then we must change this to:
-            // Self::V1 => (1, SupportedProtocolVersions::new_for_message(1, u64::MAX)),
-            // Self::V2 => (2, SupportedProtocolVersions::new_for_message(7, u64::MAX)),
-            //
-            // Suppose we remove support for V1 after protocol version 12: we can do it like so:
-            // Self::V1 => (1, SupportedProtocolVersions::new_for_message(1, 12)),
-        };
-
-        if !supported.is_version_supported(protocol_config.version) {
-            return Err(SuiError::WrongMessageVersion {
-                error: format!(
-                    "TransactionDataV{} is not supported at {:?}. (Supported range is {:?}",
-                    message_version, protocol_config.version, supported
-                ),
-            });
-        }
-
-        // Now check interior versioned data
-        self.kind().check_version_supported(protocol_config)?;
-
-        Ok(())
     }
 }
 
@@ -1329,10 +1113,6 @@ pub trait TransactionDataAPI {
 
     fn input_objects(&self) -> UserInputResult<Vec<InputObjectKind>>;
 
-    fn validity_check(&self, config: &ProtocolConfig) -> UserInputResult;
-
-    fn validity_check_no_gas_check(&self, config: &ProtocolConfig) -> UserInputResult;
-
     /// Check if the transaction is compliant with sponsorship.
     fn check_sponsorship(&self) -> UserInputResult;
 
@@ -1422,25 +1202,6 @@ impl TransactionDataAPI for TransactionDataV1 {
         Ok(inputs)
     }
 
-    fn validity_check(&self, config: &ProtocolConfig) -> UserInputResult {
-        fp_ensure!(!self.gas().is_empty(), UserInputError::MissingGasPayment);
-        fp_ensure!(
-            self.gas().len() < config.max_gas_payment_objects() as usize,
-            UserInputError::SizeLimitExceeded {
-                limit: "maximum number of gas payment objects".to_string(),
-                value: config.max_gas_payment_objects().to_string()
-            }
-        );
-        self.validity_check_no_gas_check(config)
-    }
-
-    // Keep all the logic for validity here, we need this for dry run where the gas
-    // may not be provided and created "on the fly"
-    fn validity_check_no_gas_check(&self, config: &ProtocolConfig) -> UserInputResult {
-        self.kind().validity_check(config)?;
-        self.check_sponsorship()
-    }
-
     /// Check if the transaction is sponsored (namely gas owner != sender)
     fn is_sponsored_tx(&self) -> bool {
         self.gas_owner() != self.sender
@@ -1484,9 +1245,6 @@ pub trait VersionedProtocolMessage {
     fn message_version(&self) -> Option<u64> {
         None
     }
-
-    /// Check that the version of the message is the correct one to use at this protocol version.
-    fn check_version_supported(&self, protocol_config: &ProtocolConfig) -> SuiResult;
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize, PartialOrd, Ord)]

@@ -565,8 +565,8 @@ pub enum VMMemoryLimitExceededSubStatusCode {
 pub type SuiResult<T = ()> = Result<T, SuiError>;
 pub type UserInputResult<T = ()> = Result<T, UserInputError>;
 
-impl From<sui_protocol_config::Error> for SuiError {
-    fn from(error: sui_protocol_config::Error) -> Self {
+impl From<crate::sui_protocol_config::Error> for SuiError {
+    fn from(error: crate::sui_protocol_config::Error) -> Self {
         SuiError::WrongMessageVersion { error: error.0 }
     }
 }

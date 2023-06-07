@@ -1,7 +1,6 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::execution_status::PackageUpgradeError;
 use crate::{
     base_types::{ObjectID, SequenceNumber},
     crypto::DefaultHash,
@@ -18,12 +17,8 @@ use derive_more::Display;
 use fastcrypto::hash::HashFunction;
 use move_binary_format::file_format::CompiledModule;
 use move_binary_format::normalized;
-use move_binary_format::{
-    access::ModuleAccess,
-    compatibility::{Compatibility, InclusionCheck},
-    errors::PartialVMResult,
-};
-use move_binary_format::{binary_views::BinaryIndexedView, file_format::AbilitySet};
+use move_binary_format::access::ModuleAccess;
+use move_binary_format::binary_views::BinaryIndexedView;
 use move_core_types::{
     account_address::AccountAddress,
     ident_str,
@@ -37,7 +32,6 @@ use serde_json::Value;
 use serde_with::serde_as;
 use serde_with::Bytes;
 use alloc::collections::{BTreeMap, BTreeSet};
-use sui_protocol_config::ProtocolConfig;
 
 // TODO: robust MovePackage tests
 // #[cfg(test)]
@@ -136,37 +130,6 @@ impl UpgradePolicy {
 
     pub fn is_valid_policy(policy: &u8) -> bool {
         Self::try_from(*policy).is_ok()
-    }
-
-    fn compatibility_check_for_protocol(protocol_config: &ProtocolConfig) -> Compatibility {
-        let disallowed_new_abilities = if protocol_config.disallow_adding_abilities_on_upgrade() {
-            AbilitySet::ALL
-        } else {
-            AbilitySet::EMPTY
-        };
-        Compatibility {
-            check_struct_and_pub_function_linking: true,
-            check_struct_layout: true,
-            check_friend_linking: false,
-            check_private_entry_linking: false,
-            disallowed_new_abilities,
-            disallow_change_struct_type_params: protocol_config
-                .disallow_change_struct_type_params_on_upgrade(),
-        }
-    }
-
-    pub fn check_compatibility(
-        &self,
-        old_module: &normalized::Module,
-        new_module: &normalized::Module,
-        protocol_config: &ProtocolConfig,
-    ) -> PartialVMResult<()> {
-        match self {
-            Self::Compatible => Self::compatibility_check_for_protocol(protocol_config)
-                .check(old_module, new_module),
-            Self::Additive => InclusionCheck::Subset.check(old_module, new_module),
-            Self::DepOnly => InclusionCheck::Equal.check(old_module, new_module),
-        }
     }
 }
 
@@ -299,34 +262,6 @@ impl MovePackage {
             OBJECT_START_VERSION,
             modules,
             max_move_package_size,
-            type_origin_table,
-            transitive_dependencies,
-        )
-    }
-
-    /// Create an upgraded version of the package along with this version's type origin and linkage
-    /// tables.
-    pub fn new_upgraded<'p>(
-        &self,
-        storage_id: ObjectID,
-        modules: &[CompiledModule],
-        protocol_config: &ProtocolConfig,
-        transitive_dependencies: impl IntoIterator<Item = &'p MovePackage>,
-    ) -> Result<Self, ExecutionError> {
-        let module = modules
-            .first()
-            .expect("Tried to build a Move package from an empty iterator of Compiled modules");
-        let runtime_id = ObjectID::from(*module.address());
-        let type_origin_table =
-            build_upgraded_type_origin_table(self, modules, storage_id, protocol_config)?;
-        let mut new_version = self.version();
-        new_version.increment();
-        Self::from_module_iter_with_type_origin_table(
-            storage_id,
-            runtime_id,
-            new_version,
-            modules,
-            protocol_config.max_move_package_size(),
             type_origin_table,
             transitive_dependencies,
         )
@@ -735,46 +670,4 @@ fn build_initial_type_origin_table(modules: &[CompiledModule]) -> Vec<TypeOrigin
             })
         })
         .collect()
-}
-
-fn build_upgraded_type_origin_table(
-    predecessor: &MovePackage,
-    modules: &[CompiledModule],
-    storage_id: ObjectID,
-    protocol_config: &ProtocolConfig,
-) -> Result<Vec<TypeOrigin>, ExecutionError> {
-    let mut new_table = vec![];
-    let mut existing_table = predecessor.type_origin_map();
-    for m in modules {
-        for struct_def in m.struct_defs() {
-            let struct_handle = m.struct_handle_at(struct_def.struct_handle);
-            let module_name = m.name().to_string();
-            let struct_name = m.identifier_at(struct_handle.name).to_string();
-            let mod_key = (module_name.clone(), struct_name.clone());
-            // if id exists in the predecessor's table, use it, otherwise use the id of the upgraded
-            // module
-            let package = existing_table.remove(&mod_key).unwrap_or(storage_id);
-            new_table.push(TypeOrigin {
-                module_name,
-                struct_name,
-                package,
-            });
-        }
-    }
-
-    if !existing_table.is_empty() {
-        if protocol_config.missing_type_is_compatibility_error() {
-            Err(ExecutionError::from_kind(
-                ExecutionErrorKind::PackageUpgradeError {
-                    upgrade_error: PackageUpgradeError::IncompatibleUpgrade,
-                },
-            ))
-        } else {
-            Err(ExecutionError::invariant_violation(
-                "Package upgrade missing type from previous version.",
-            ))
-        }
-    } else {
-        Ok(new_table)
-    }
 }

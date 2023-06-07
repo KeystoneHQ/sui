@@ -21,8 +21,6 @@ use serde_with::serde_as;
 use serde_with::DisplayFromStr;
 use serde_with::{Bytes, DeserializeAs, SerializeAs};
 
-use sui_protocol_config::ProtocolVersion;
-
 use crate::{
     parse_sui_struct_tag, parse_sui_type_tag, DEEPBOOK_ADDRESS, SUI_CLOCK_ADDRESS,
     SUI_FRAMEWORK_ADDRESS, SUI_SYSTEM_ADDRESS, SUI_SYSTEM_STATE_ADDRESS,
@@ -329,30 +327,5 @@ impl<'de> DeserializeAs<'de, crate::base_types::SequenceNumber> for SequenceNumb
     {
         let b = BigInt::deserialize(deserializer)?;
         Ok(crate::base_types::SequenceNumber::from_u64(*b))
-    }
-}
-
-#[serde_as]
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Copy)]
-#[serde(rename = "ProtocolVersion")]
-pub struct AsProtocolVersion(u64);
-
-impl SerializeAs<ProtocolVersion> for AsProtocolVersion {
-    fn serialize_as<S>(value: &ProtocolVersion, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let s = value.as_u64().to_string();
-        s.serialize(serializer)
-    }
-}
-
-impl<'de> DeserializeAs<'de, ProtocolVersion> for AsProtocolVersion {
-    fn deserialize_as<D>(deserializer: D) -> Result<ProtocolVersion, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let b = BigInt::<u64>::deserialize(deserializer)?;
-        Ok(ProtocolVersion::from(*b))
     }
 }

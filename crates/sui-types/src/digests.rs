@@ -8,7 +8,7 @@ use fastcrypto::encoding::{Base58, Encoding};
 use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, Bytes};
-use sui_protocol_config::Chain;
+use crate::sui_protocol_config::Chain;
 
 /// A representation of a 32 byte digest
 #[serde_as]

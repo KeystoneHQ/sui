@@ -2,8 +2,6 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-pub use sui_protocol_config::ProtocolVersion;
-
 pub type EpochId = u64;
 
 // TODO: the stake and voting power of a validator can be different so
