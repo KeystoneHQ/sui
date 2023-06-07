@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::base_types::{
-    random_object_ref, ExecutionDigests, ObjectID, ObjectRef, SequenceNumber, SuiAddress,
+    random_object_ref, ObjectID, ObjectRef, SequenceNumber, SuiAddress,
 };
 use crate::committee::EpochId;
 use crate::crypto::{
-    default_hash, AuthorityStrongQuorumSignInfo, EmptySignInfo,
+    AuthorityStrongQuorumSignInfo, EmptySignInfo,
 };
 use crate::digests::{TransactionDigest, TransactionEffectsDigest, TransactionEventsDigest};
 use crate::error::{SuiError, SuiResult};
@@ -79,10 +79,6 @@ impl Message for TransactionEffects {
     type DigestType = TransactionEffectsDigest;
     const SCOPE: IntentScope = IntentScope::TransactionEffects;
 
-    fn digest(&self) -> Self::DigestType {
-        TransactionEffectsDigest::new(default_hash(self))
-    }
-
     fn verify(&self, _sig_epoch: Option<EpochId>) -> SuiResult {
         Ok(())
     }
@@ -135,13 +131,6 @@ impl TransactionEffects {
             events_digest,
             dependencies,
         })
-    }
-
-    pub fn execution_digests(&self) -> ExecutionDigests {
-        ExecutionDigests {
-            transaction: *self.transaction_digest(),
-            effects: self.digest(),
-        }
     }
 
     pub fn estimate_effects_size_upperbound(
@@ -451,12 +440,6 @@ pub trait TransactionEffectsAPI {
 #[derive(Eq, PartialEq, Clone, Debug, Serialize, Deserialize, Default)]
 pub struct TransactionEvents {
     pub data: Vec<Event>,
-}
-
-impl TransactionEvents {
-    pub fn digest(&self) -> TransactionEventsDigest {
-        TransactionEventsDigest::new(default_hash(self))
-    }
 }
 
 #[derive(Debug)]

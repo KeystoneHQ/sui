@@ -1574,41 +1574,10 @@ impl InputObjects {
         owned_objects
     }
 
-    pub fn filter_shared_objects(&self) -> Vec<ObjectRef> {
-        self.objects
-            .iter()
-            .filter(|(kind, _)| matches!(kind, InputObjectKind::SharedMoveObject { .. }))
-            .map(|(_, obj)| obj.compute_object_reference())
-            .collect()
-    }
-
     pub fn transaction_dependencies(&self) -> BTreeSet<TransactionDigest> {
         self.objects
             .iter()
             .map(|(_, obj)| obj.previous_transaction)
-            .collect()
-    }
-
-    pub fn mutable_inputs(&self) -> Vec<ObjectRef> {
-        self.objects
-            .iter()
-            .filter_map(|(kind, object)| match kind {
-                InputObjectKind::MovePackage(_) => None,
-                InputObjectKind::ImmOrOwnedMoveObject(object_ref) => {
-                    if object.is_immutable() {
-                        None
-                    } else {
-                        Some(*object_ref)
-                    }
-                }
-                InputObjectKind::SharedMoveObject { mutable, .. } => {
-                    if *mutable {
-                        Some(object.compute_object_reference())
-                    } else {
-                        None
-                    }
-                }
-            })
             .collect()
     }
 

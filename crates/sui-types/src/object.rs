@@ -18,7 +18,7 @@ use serde_with::Bytes;
 
 use crate::base_types::{MoveObjectType, ObjectIDParseError};
 use crate::coin::Coin;
-use crate::crypto::{default_hash, deterministic_random_account_key};
+use crate::crypto::{deterministic_random_account_key};
 use crate::error::{ExecutionError, ExecutionErrorKind, UserInputError, UserInputResult};
 use crate::error::{SuiError, SuiResult};
 use crate::gas_coin::TOTAL_SUPPLY_MIST;
@@ -27,7 +27,7 @@ use crate::move_package::MovePackage;
 use crate::type_resolver::LayoutResolver;
 use crate::{
     base_types::{
-        ObjectDigest, ObjectID, ObjectRef, SequenceNumber, SuiAddress, TransactionDigest,
+        ObjectID, ObjectRef, SequenceNumber, SuiAddress, TransactionDigest,
     },
     gas_coin::GasCoin,
 };
@@ -710,10 +710,6 @@ impl Object {
         matches!(&self.data, Data::Package(_))
     }
 
-    pub fn compute_object_reference(&self) -> ObjectRef {
-        (self.id(), self.version(), self.digest())
-    }
-
     pub fn id(&self) -> ObjectID {
         use Data::*;
 
@@ -738,10 +734,6 @@ impl Object {
 
     pub fn struct_tag(&self) -> Option<StructTag> {
         self.data.struct_tag()
-    }
-
-    pub fn digest(&self) -> ObjectDigest {
-        ObjectDigest::new(default_hash(self))
     }
 
     pub fn is_coin(&self) -> bool {

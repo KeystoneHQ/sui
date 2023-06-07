@@ -1156,7 +1156,7 @@ where
         let name = serde_name::trace_name::<Self>().expect("Self must be a struct or an enum");
         // Note: This assumes that names never contain the separator `::`.
         write!(writer, "{}::", name).expect("Hasher should not fail");
-        bcs::serialize_into(writer, &self).expect("Message serialization should not fail");
+        // bcs::serialize_into(writer, &self).expect("Message serialization should not fail");
     }
 }
 
@@ -1165,7 +1165,7 @@ where
     W: core2::io::Write,
 {
     fn write(&self, writer: &mut W) {
-        bcs::serialize_into(writer, &self).expect("Message serialization should not fail");
+        // bcs::serialize_into(writer, &self).expect("Message serialization should not fail");
     }
 }
 
