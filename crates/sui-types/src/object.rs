@@ -18,7 +18,6 @@ use serde_with::Bytes;
 
 use crate::base_types::{MoveObjectType, ObjectIDParseError};
 use crate::coin::Coin;
-use crate::crypto::{deterministic_random_account_key};
 use crate::error::{ExecutionError, ExecutionErrorKind, UserInputError, UserInputResult};
 use crate::error::{SuiError, SuiResult};
 use crate::gas_coin::TOTAL_SUPPLY_MIST;
@@ -940,28 +939,6 @@ impl Object {
             TransactionDigest::genesis(),
         )
     }
-
-    /// Generate a new gas coin object with default balance and random owner.
-    pub fn new_gas_for_testing() -> Self {
-        let gas_object_id = ObjectID::random();
-        let (owner, _) = deterministic_random_account_key();
-        Object::with_id_owner_for_testing(gas_object_id, owner)
-    }
-}
-
-/// Make a few test gas objects (all with the same random owner).
-pub fn generate_test_gas_objects() -> Vec<Object> {
-    thread_local! {
-        static GAS_OBJECTS: Vec<Object> = (0..50)
-            .map(|_| {
-                let gas_object_id = ObjectID::random();
-                let (owner, _) = deterministic_random_account_key();
-                Object::with_id_owner_for_testing(gas_object_id, owner)
-            })
-            .collect();
-    }
-
-    GAS_OBJECTS.with(|v| v.clone())
 }
 
 /// Make a few test gas objects (all with the same owner).

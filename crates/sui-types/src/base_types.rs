@@ -34,14 +34,12 @@ use anyhow::anyhow;
 use fastcrypto::encoding::decode_bytes_hex;
 use fastcrypto::encoding::{Encoding, Hex};
 use fastcrypto::hash::HashFunction;
-use fastcrypto::traits::AllowedRng;
 use move_core_types::account_address::AccountAddress;
 use move_core_types::ident_str;
 use move_core_types::identifier::IdentStr;
 use move_core_types::language_storage::ModuleId;
 use move_core_types::language_storage::StructTag;
 use move_core_types::language_storage::TypeTag;
-use rand::Rng;
 use schemars::JsonSchema;
 use serde::ser::Error;
 use serde::{Deserialize, Serialize};
@@ -770,15 +768,6 @@ impl ObjectID {
     /// Return a random ObjectID.
     pub fn random() -> Self {
         Self::from(AccountAddress::random())
-    }
-
-    /// Return a random ObjectID from a given RNG.
-    pub fn random_from_rng<R>(rng: &mut R) -> Self
-    where
-        R: AllowedRng,
-    {
-        let buf: [u8; Self::LENGTH] = rng.gen();
-        ObjectID::new(buf)
     }
 
     /// Return the underlying bytes buffer of the ObjectID.

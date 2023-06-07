@@ -24,8 +24,6 @@ pub use fastcrypto::traits::{
     AggregateAuthenticator, Authenticator, EncodeDecodeBase64, SigningKey, ToFromBytes,
     VerifyingKey,
 };
-use rand::rngs::{OsRng, StdRng};
-use rand::SeedableRng;
 use roaring::RoaringBitmap;
 use schemars::JsonSchema;
 use serde::ser::Serializer;
@@ -423,57 +421,6 @@ impl Default for AuthorityPublicKeyBytes {
     fn default() -> Self {
         Self::ZERO
     }
-}
-
-// TODO: get_key_pair() and get_key_pair_from_bytes() should return KeyPair only.
-// TODO: rename to random_key_pair
-pub fn get_key_pair<KP: KeypairTraits>() -> (SuiAddress, KP)
-where
-    <KP as KeypairTraits>::PubKey: SuiPublicKey,
-{
-    get_key_pair_from_rng(&mut OsRng)
-}
-
-/// Generate a random committee key pairs with a given committee size
-pub fn random_committee_key_pairs_of_size(size: usize) -> Vec<AuthorityKeyPair> {
-    let mut rng = StdRng::from_seed([0; 32]);
-    (0..size)
-        .map(|_| {
-            // TODO: We are generating the keys 4 times to match exactly as how we generate
-            // keys in ConfigBuilder::build (sui-config/src/network_config_builder). This is because
-            // we are using these key generation functions as fixtures and we call them
-            // independently in different paths and exact the results to be the same.
-            // We should eliminate them.
-            let key_pair = get_key_pair_from_rng::<AuthorityKeyPair, _>(&mut rng);
-            get_key_pair_from_rng::<AuthorityKeyPair, _>(&mut rng);
-            get_key_pair_from_rng::<AccountKeyPair, _>(&mut rng);
-            get_key_pair_from_rng::<AccountKeyPair, _>(&mut rng);
-            key_pair.1
-        })
-        .collect()
-}
-
-pub fn deterministic_random_account_key() -> (SuiAddress, AccountKeyPair) {
-    let mut rng = StdRng::from_seed([0; 32]);
-    get_key_pair_from_rng(&mut rng)
-}
-
-pub fn get_account_key_pair() -> (SuiAddress, AccountKeyPair) {
-    get_key_pair()
-}
-
-pub fn get_authority_key_pair() -> (SuiAddress, AuthorityKeyPair) {
-    get_key_pair()
-}
-
-/// Generate a keypair from the specified RNG (useful for testing with seedable rngs).
-pub fn get_key_pair_from_rng<KP: KeypairTraits, R>(csprng: &mut R) -> (SuiAddress, KP)
-where
-    R: rand::CryptoRng + rand::RngCore,
-    <KP as KeypairTraits>::PubKey: SuiPublicKey,
-{
-    let kp = KP::generate(&mut StdRng::from_rng(csprng).unwrap());
-    (kp.public().into(), kp)
 }
 
 // TODO: C-GETTER
@@ -978,8 +925,6 @@ mod bcs_signable {
 
     impl BcsSignable for crate::transaction::TransactionData {}
     impl BcsSignable for crate::object::Object {}
-
-    impl BcsSignable for crate::accumulator::Accumulator {}
 
 }
 
