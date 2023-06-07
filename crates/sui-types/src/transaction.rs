@@ -4,7 +4,6 @@
 
 use super::{base_types::*, error::*};
 use crate::committee::{EpochId, ProtocolVersion};
-use crate::messages_consensus::ConsensusCommitPrologue;
 use crate::object::{MoveObject, Object, Owner};
 use crate::programmable_transaction_builder::ProgrammableTransactionBuilder;
 use crate::{
@@ -171,18 +170,6 @@ impl GenesisObject {
 pub enum TransactionKind {
     /// A transaction that allows the interleaving of native commands and Move calls
     ProgrammableTransaction(ProgrammableTransaction),
-    /// A system transaction that will update epoch information on-chain.
-    /// It will only ever be executed once in an epoch.
-    /// The argument is the next epoch number, which is critical
-    /// because it ensures that this transaction has a unique digest.
-    /// This will eventually be translated to a Move call during execution.
-    /// It also doesn't require/use a gas object.
-    /// A validator will not sign a transaction of this kind from outside. It only
-    /// signs internally during epoch changes.
-    ChangeEpoch(ChangeEpoch),
-    Genesis(GenesisTransaction),
-    ConsensusCommitPrologue(ConsensusCommitPrologue),
-    // .. more transaction types go here
 }
 
 impl VersionedProtocolMessage for TransactionKind {
@@ -193,10 +180,7 @@ impl VersionedProtocolMessage for TransactionKind {
         // When we add new cases here, check that current_protocol_version does not pre-date the
         // addition of that enumerant.
         match &self {
-            TransactionKind::ChangeEpoch(_)
-            | TransactionKind::Genesis(_)
-            | TransactionKind::ConsensusCommitPrologue(_)
-            | TransactionKind::ProgrammableTransaction(_) => Ok(()),
+            TransactionKind::ProgrammableTransaction(_) => Ok(()),
         }
     }
 }
@@ -797,27 +781,6 @@ impl TransactionKind {
         TransactionKind::ProgrammableTransaction(pt)
     }
 
-    pub fn is_system_tx(&self) -> bool {
-        matches!(
-            self,
-            TransactionKind::ChangeEpoch(_)
-                | TransactionKind::Genesis(_)
-                | TransactionKind::ConsensusCommitPrologue(_)
-        )
-    }
-
-    /// If this is advance epoch transaction, returns (total gas charged, total gas rebated).
-    /// TODO: We should use GasCostSummary directly in ChangeEpoch struct, and return that
-    /// directly.
-    pub fn get_advance_epoch_tx_gas_summary(&self) -> Option<(u64, u64)> {
-        match self {
-            Self::ChangeEpoch(e) => {
-                Some((e.computation_charge + e.storage_charge, e.storage_rebate))
-            }
-            _ => None,
-        }
-    }
-
     pub fn contains_shared_object(&self) -> bool {
         self.shared_input_objects().next().is_some()
     }
@@ -826,28 +789,17 @@ impl TransactionKind {
     /// It covers both Call and ChangeEpoch transaction kind, because both makes Move calls.
     pub fn shared_input_objects(&self) -> impl Iterator<Item = SharedInputObject> + '_ {
         match &self {
-            Self::ChangeEpoch(_) => {
-                Either::Left(Either::Left(iter::once(SharedInputObject::SUI_SYSTEM_OBJ)))
-            }
-
-            Self::ConsensusCommitPrologue(_) => {
-                Either::Left(Either::Right(iter::once(SharedInputObject {
-                    id: SUI_CLOCK_OBJECT_ID,
-                    initial_shared_version: SUI_CLOCK_OBJECT_SHARED_VERSION,
-                    mutable: true,
-                })))
-            }
             Self::ProgrammableTransaction(pt) => {
-                Either::Right(Either::Left(pt.shared_input_objects()))
+                Either::Left(pt.shared_input_objects())
             }
-            _ => Either::Right(Either::Right(iter::empty())),
+            #[allow(unreachable_patterns)]
+            _ => Either::Right(iter::empty()),
         }
     }
 
     fn move_calls(&self) -> Vec<(&ObjectID, &IdentStr, &IdentStr)> {
         match &self {
             Self::ProgrammableTransaction(pt) => pt.move_calls(),
-            _ => vec![],
         }
     }
 
@@ -857,24 +809,9 @@ impl TransactionKind {
     /// TODO: use an iterator over references here instead of a Vec to avoid allocations.
     pub fn input_objects(&self) -> UserInputResult<Vec<InputObjectKind>> {
         let input_objects = match &self {
-            Self::ChangeEpoch(_) => {
-                vec![InputObjectKind::SharedMoveObject {
-                    id: SUI_SYSTEM_STATE_OBJECT_ID,
-                    initial_shared_version: SUI_SYSTEM_STATE_OBJECT_SHARED_VERSION,
-                    mutable: true,
-                }]
-            }
-            Self::Genesis(_) => {
-                vec![]
-            }
-            Self::ConsensusCommitPrologue(_) => {
-                vec![InputObjectKind::SharedMoveObject {
-                    id: SUI_CLOCK_OBJECT_ID,
-                    initial_shared_version: SUI_CLOCK_OBJECT_SHARED_VERSION,
-                    mutable: true,
-                }]
-            }
-            Self::ProgrammableTransaction(p) => return p.input_objects(),
+            Self::ProgrammableTransaction(p) => {
+                p.input_objects()
+            },
         };
         // Ensure that there are no duplicate inputs. This cannot be removed because:
         // In [`AuthorityState::check_locks`], we check that there are no duplicate mutable
@@ -883,19 +820,20 @@ impl TransactionKind {
         // transactions down the line. Once we have that, we need check here to make sure
         // the same shared object doesn't show up more than once in the same single
         // transaction.
-        let mut used = HashSet::new();
-        if !input_objects.iter().all(|o| used.insert(o.object_id())) {
-            return Err(UserInputError::DuplicateObjectRefInput);
+        if let Ok(objects) = input_objects {
+            let mut used = HashSet::new();
+            if !objects.iter().all(|o| used.insert(o.object_id())) {
+                return Err(UserInputError::DuplicateObjectRefInput);
+            }
+            Ok(objects)
+        } else {
+            input_objects
         }
-        Ok(input_objects)
     }
 
     pub fn validity_check(&self, config: &ProtocolConfig) -> UserInputResult {
         match self {
             TransactionKind::ProgrammableTransaction(p) => p.validity_check(config)?,
-            TransactionKind::ChangeEpoch(_)
-            | TransactionKind::Genesis(_)
-            | TransactionKind::ConsensusCommitPrologue(_) => (),
         };
         Ok(())
     }
@@ -904,14 +842,12 @@ impl TransactionKind {
     pub fn num_commands(&self) -> usize {
         match self {
             TransactionKind::ProgrammableTransaction(pt) => pt.commands.len(),
-            _ => 0,
         }
     }
 
     pub fn iter_commands(&self) -> impl Iterator<Item = &Command> {
         match self {
             TransactionKind::ProgrammableTransaction(pt) => pt.commands.iter(),
-            _ => [].iter(),
         }
     }
 }
@@ -920,21 +856,6 @@ impl Display for TransactionKind {
     fn fmt(&self, f: &mut Formatter<'_>) -> alloc::fmt::Result {
         let mut writer = String::new();
         match &self {
-            Self::ChangeEpoch(e) => {
-                writeln!(writer, "Transaction Kind : Epoch Change")?;
-                writeln!(writer, "New epoch ID : {}", e.epoch)?;
-                writeln!(writer, "Storage gas reward : {}", e.storage_charge)?;
-                writeln!(writer, "Computation gas reward : {}", e.computation_charge)?;
-                writeln!(writer, "Storage rebate : {}", e.storage_rebate)?;
-                writeln!(writer, "Timestamp : {}", e.epoch_start_timestamp_ms)?;
-            }
-            Self::Genesis(_) => {
-                writeln!(writer, "Transaction Kind : Genesis")?;
-            }
-            Self::ConsensusCommitPrologue(_p) => {
-                writeln!(writer, "Transaction Kind : Consensus Commit Prologue")?;
-                // writeln!(writer, "Timestamp : {}", p.commit_timestamp_ms)?;
-            }
             Self::ProgrammableTransaction(p) => {
                 writeln!(writer, "Transaction Kind : Programmable")?;
                 write!(writer, "{p}")?;
@@ -1410,10 +1331,6 @@ pub trait TransactionDataAPI {
     /// Check if the transaction is compliant with sponsorship.
     fn check_sponsorship(&self) -> UserInputResult;
 
-    fn is_system_tx(&self) -> bool;
-    fn is_change_epoch_tx(&self) -> bool;
-    fn is_genesis_tx(&self) -> bool;
-
     /// Check if the transaction is sponsored (namely gas owner != sender)
     fn is_sponsored_tx(&self) -> bool;
 
@@ -1492,13 +1409,11 @@ impl TransactionDataAPI for TransactionDataV1 {
     fn input_objects(&self) -> UserInputResult<Vec<InputObjectKind>> {
         let mut inputs = self.kind.input_objects()?;
 
-        if !self.kind.is_system_tx() {
-            inputs.extend(
-                self.gas()
-                    .iter()
-                    .map(|obj_ref| InputObjectKind::ImmOrOwnedMoveObject(*obj_ref)),
-            );
-        }
+        inputs.extend(
+            self.gas()
+                .iter()
+                .map(|obj_ref| InputObjectKind::ImmOrOwnedMoveObject(*obj_ref)),
+        );
         Ok(inputs)
     }
 
@@ -1534,26 +1449,11 @@ impl TransactionDataAPI for TransactionDataV1 {
         }
         let allow_sponsored_tx = match &self.kind {
             TransactionKind::ProgrammableTransaction(_) => true,
-            TransactionKind::ChangeEpoch(_)
-            | TransactionKind::ConsensusCommitPrologue(_)
-            | TransactionKind::Genesis(_) => false,
         };
         if allow_sponsored_tx {
             return Ok(());
         }
         Err(UserInputError::UnsupportedSponsoredTransactionKind)
-    }
-
-    fn is_change_epoch_tx(&self) -> bool {
-        matches!(self.kind, TransactionKind::ChangeEpoch(_))
-    }
-
-    fn is_system_tx(&self) -> bool {
-        self.kind.is_system_tx()
-    }
-
-    fn is_genesis_tx(&self) -> bool {
-        matches!(self.kind, TransactionKind::Genesis(_))
     }
 
     #[cfg(test)]
