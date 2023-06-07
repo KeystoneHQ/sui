@@ -2,32 +2,25 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::{
-    crypto::{CompressedSignature, DefaultHash, SignatureScheme},
-    signature::{AuthenticatorTrait, AuxVerifyData},
+    crypto::{CompressedSignature, SignatureScheme},
     sui_serde::SuiBitmap,
 };
 pub use enum_dispatch::enum_dispatch;
 use fastcrypto::{
-    ed25519::Ed25519PublicKey,
     encoding::{Base64, Encoding},
     error::FastCryptoError,
-    hash::HashFunction,
-    secp256k1::Secp256k1PublicKey,
-    secp256r1::Secp256r1PublicKey,
-    traits::{ToFromBytes, VerifyingKey},
+    traits::{ToFromBytes},
 };
 use once_cell::sync::OnceCell;
 use roaring::RoaringBitmap;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
-use shared_crypto::intent::IntentMessage;
 use alloc::{
     str::FromStr,
 };
 use core::hash::{Hash, Hasher};
 use crate::{
-    base_types::SuiAddress,
     crypto::{PublicKey, Signature},
     error::SuiError,
 };
@@ -86,102 +79,6 @@ impl Eq for MultiSig {}
 impl Hash for MultiSig {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.as_ref().hash(state);
-    }
-}
-
-impl AuthenticatorTrait for MultiSig {
-    fn verify_secure_generic<T>(
-        &self,
-        value: &IntentMessage<T>,
-        author: SuiAddress,
-        _aux_verify_data: AuxVerifyData,
-    ) -> Result<(), SuiError>
-    where
-        T: Serialize,
-    {
-        if self.multisig_pk.pk_map.len() > MAX_SIGNER_IN_MULTISIG {
-            return Err(SuiError::InvalidSignature {
-                error: "Invalid number of public keys".to_string(),
-            });
-        }
-
-        if SuiAddress::from(&self.multisig_pk) != author {
-            return Err(SuiError::InvalidSignature {
-                error: "Invalid address".to_string(),
-            });
-        }
-        let mut weight_sum: u16 = 0;
-        let message = bcs::to_bytes(&value).expect("Message serialization should not fail");
-        let mut hasher = DefaultHash::default();
-        hasher.update(message);
-        let digest = hasher.finalize().digest;
-
-        // Verify each signature against its corresponding signature scheme and public key.
-        // TODO: further optimization can be done because multiple Ed25519 signatures can be batch verified.
-        for (sig, i) in self.sigs.iter().zip(&self.bitmap) {
-            let (pk, weight) =
-                self.multisig_pk
-                    .pk_map
-                    .get(i as usize)
-                    .ok_or(SuiError::InvalidSignature {
-                        error: "Invalid public keys index".to_string(),
-                    })?;
-            let res = match sig {
-                CompressedSignature::Ed25519(s) => {
-                    let pk = Ed25519PublicKey::from_bytes(pk.as_ref()).map_err(|_| {
-                        SuiError::InvalidSignature {
-                            error: "Invalid public key".to_string(),
-                        }
-                    })?;
-                    pk.verify(
-                        &digest,
-                        &s.try_into().map_err(|_| SuiError::InvalidSignature {
-                            error: "Fail to verify single sig".to_string(),
-                        })?,
-                    )
-                }
-                CompressedSignature::Secp256k1(s) => {
-                    let pk = Secp256k1PublicKey::from_bytes(pk.as_ref()).map_err(|_| {
-                        SuiError::InvalidSignature {
-                            error: "Invalid public key".to_string(),
-                        }
-                    })?;
-                    pk.verify(
-                        &digest,
-                        &s.try_into().map_err(|_| SuiError::InvalidSignature {
-                            error: "Fail to verify single sig".to_string(),
-                        })?,
-                    )
-                }
-                CompressedSignature::Secp256r1(s) => {
-                    let pk = Secp256r1PublicKey::from_bytes(pk.as_ref()).map_err(|_| {
-                        SuiError::InvalidSignature {
-                            error: "Invalid public key".to_string(),
-                        }
-                    })?;
-                    pk.verify(
-                        &digest,
-                        &s.try_into().map_err(|_| SuiError::InvalidSignature {
-                            error: "Fail to verify single sig".to_string(),
-                        })?,
-                    )
-                }
-            };
-            if res.is_ok() {
-                weight_sum += *weight as u16;
-            } else {
-                return Err(SuiError::InvalidSignature {
-                    error: format!("Invalid signature for pk={:?}", pk),
-                });
-            }
-        }
-        if weight_sum >= self.multisig_pk.threshold {
-            Ok(())
-        } else {
-            Err(SuiError::InvalidSignature {
-                error: format!("Insufficient weight {:?}", weight_sum),
-            })
-        }
     }
 }
 

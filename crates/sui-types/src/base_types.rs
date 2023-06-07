@@ -46,7 +46,6 @@ use schemars::JsonSchema;
 use serde::ser::Error;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
-use shared_crypto::intent::HashingIntentScope;
 use core::cmp::max;
 use core::convert::TryFrom;
 use alloc::fmt;
@@ -826,20 +825,6 @@ impl ObjectID {
         } else {
             Self::from_str(&literal[2..])
         }
-    }
-
-    /// Create an ObjectID from `TransactionDigest` and `creation_num`.
-    /// Caller is responsible for ensuring that `creation_num` is fresh
-    pub fn derive_id(digest: TransactionDigest, creation_num: u64) -> Self {
-        let mut hasher = DefaultHash::default();
-        hasher.update([HashingIntentScope::RegularObjectId as u8]);
-        hasher.update(digest);
-        hasher.update(creation_num.to_le_bytes());
-        let hash = hasher.finalize();
-
-        // truncate into an ObjectID.
-        // OK to access slice because digest should never be shorter than ObjectID::LENGTH.
-        ObjectID::try_from(&hash.as_ref()[0..ObjectID::LENGTH]).unwrap()
     }
 
     /// Incremenent the ObjectID by usize IDs, assuming the ObjectID hex is a number represented as an array of bytes

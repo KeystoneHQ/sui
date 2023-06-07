@@ -49,7 +49,6 @@ pub mod executable_transaction;
 pub mod execution_status;
 pub mod gas;
 pub mod gas_coin;
-pub mod gas_model;
 pub mod governance;
 pub mod id;
 // pub mod in_memory_storage;

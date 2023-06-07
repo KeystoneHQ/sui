@@ -2,17 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::committee::EpochId;
-use crate::crypto::{SignatureScheme, SuiSignature};
-// use crate::zk_login_authenticator::ZkLoginAuthenticator;
-use crate::{base_types::SuiAddress, crypto::Signature, error::SuiError, multisig::MultiSig};
+use crate::crypto::SignatureScheme;
+use crate::{crypto::Signature, multisig::MultiSig};
 pub use enum_dispatch::enum_dispatch;
 use fastcrypto::{
     error::FastCryptoError,
     traits::{EncodeDecodeBase64, ToFromBytes},
 };
 use schemars::JsonSchema;
-use serde::Serialize;
-use shared_crypto::intent::IntentMessage;
 use core::hash::Hash;
 #[derive(Default, Debug, Clone)]
 pub struct AuxVerifyData {
@@ -27,18 +24,6 @@ impl AuxVerifyData {
             google_jwk_as_bytes,
         }
     }
-}
-/// A lightweight trait that all members of [enum GenericSignature] implement.
-#[enum_dispatch]
-pub trait AuthenticatorTrait {
-    fn verify_secure_generic<T>(
-        &self,
-        value: &IntentMessage<T>,
-        author: SuiAddress,
-        aux_verify_data: AuxVerifyData,
-    ) -> Result<(), SuiError>
-    where
-        T: Serialize;
 }
 
 /// Due to the incompatibility of [enum Signature] (which dispatches a trait that
@@ -129,20 +114,5 @@ impl<'de> ::serde::Deserialize<'de> for GenericSignature {
             let data = GenericSignature::deserialize(deserializer)?;
             Self::from_bytes(&data.0).map_err(|e| Error::custom(e.to_string()))
         }
-    }
-}
-
-/// This ports the wrapper trait to the verify_secure defined on [enum Signature].
-impl AuthenticatorTrait for Signature {
-    fn verify_secure_generic<T>(
-        &self,
-        value: &IntentMessage<T>,
-        author: SuiAddress,
-        _aux_verify_data: AuxVerifyData,
-    ) -> Result<(), SuiError>
-    where
-        T: Serialize,
-    {
-        self.verify_secure(value, author, self.scheme())
     }
 }

@@ -2,170 +2,17 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::effects::{TransactionEffects, TransactionEffectsAPI};
 use crate::sui_serde::BigInt;
 use crate::sui_serde::Readable;
 use crate::{
-    error::{ExecutionError, UserInputError, UserInputResult},
-    gas_model::gas_v1::{self, SuiCostTable as SuiCostTableV1, SuiGasStatus as SuiGasStatusV1},
-    gas_model::gas_v2::{self, SuiCostTable as SuiCostTableV2, SuiGasStatus as SuiGasStatusV2},
+    error::{UserInputError, UserInputResult},
     object::Object,
 };
-use enum_dispatch::enum_dispatch;
-use itertools::MultiUnzip;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
-use sui_cost_tables::bytecode_tables::GasStatus;
-use sui_protocol_config::ProtocolConfig;
 
 sui_macros::checked_arithmetic! {
-
-#[enum_dispatch]
-pub trait SuiGasStatusAPI {
-    fn is_unmetered(&self) -> bool;
-    fn move_gas_status(&mut self) -> &mut GasStatus;
-    fn bucketize_computation(&mut self) -> Result<(), ExecutionError>;
-    fn summary(&self) -> GasCostSummary;
-    fn gas_budget(&self) -> u64;
-    fn storage_gas_units(&self) -> u64;
-    fn storage_rebate(&self) -> u64;
-    fn unmetered_storage_rebate(&self) -> u64;
-    fn gas_used(&self) -> u64;
-    fn reset_storage_cost_and_rebate(&mut self);
-    fn charge_storage_read(&mut self, size: usize) -> Result<(), ExecutionError>;
-    fn charge_storage_mutation(
-        &mut self,
-        new_size: usize,
-        storage_rebate: u64,
-    ) -> Result<u64, ExecutionError>;
-    fn charge_publish_package(&mut self, size: usize) -> Result<(), ExecutionError>;
-    fn track_storage_mutation(&mut self, new_size: usize, storage_rebate: u64) -> u64;
-    fn charge_storage_and_rebate(&mut self) -> Result<(), ExecutionError>;
-    fn adjust_computation_on_out_of_gas(&mut self);
-}
-
-#[enum_dispatch(SuiGasStatusAPI)]
-pub enum SuiGasStatus {
-    V1(SuiGasStatusV1),
-    V2(SuiGasStatusV2),
-}
-
-impl SuiGasStatus {
-    pub fn new_with_budget(gas_budget: u64, gas_price: u64, config: &ProtocolConfig) -> Self {
-        match config.gas_model_version() {
-            1 => Self::V1(SuiGasStatusV1::new_with_budget(
-                gas_budget,
-                gas_price,
-                config,
-            )),
-            2 | 3 | 4 | 5 => Self::V2(SuiGasStatusV2::new_with_budget(
-                gas_budget,
-                gas_price,
-                config,
-            )),
-            _ => panic!("unknown gas model version"),
-        }
-    }
-
-    pub fn new_unmetered(config: &ProtocolConfig) -> Self {
-        match config.gas_model_version() {
-            1 => Self::V1(SuiGasStatusV1::new_unmetered()),
-            2 | 3 | 4 | 5 => Self::V2(SuiGasStatusV2::new_unmetered()),
-            _ => panic!("unknown gas model version"),
-        }
-    }
-}
-
-pub enum SuiCostTable {
-    V1(SuiCostTableV1),
-    V2(SuiCostTableV2),
-}
-
-impl SuiCostTable {
-    pub fn new(config: &ProtocolConfig) -> Self {
-        match config.gas_model_version() {
-            1 => Self::V1(SuiCostTableV1::new(config)),
-            2 | 3 | 4 | 5 => Self::V2(SuiCostTableV2::new(config)),
-            _ => panic!("unknown gas model version"),
-        }
-    }
-
-    pub fn new_for_testing() -> Self {
-        Self::new(&ProtocolConfig::get_for_max_version())
-    }
-
-    pub fn unmetered(config: &ProtocolConfig) -> Self {
-        match config.gas_model_version() {
-            1 => Self::V1(SuiCostTableV1::unmetered()),
-            2 | 3 | 4 | 5 => Self::V2(SuiCostTableV2::unmetered()),
-            _ => panic!("unknown gas model version"),
-        }
-    }
-
-    pub fn max_gas_budget(&self) -> u64 {
-        match self {
-            Self::V1(cost_table) => cost_table.max_gas_budget,
-            Self::V2(cost_table) => cost_table.max_gas_budget,
-        }
-    }
-
-    pub fn min_gas_budget(&self) -> u64 {
-        match self {
-            Self::V1(cost_table) => cost_table.min_gas_budget_external(),
-            Self::V2(cost_table) => cost_table.min_transaction_cost,
-        }
-    }
-
-    // Check whether gas arguments are legit:
-    // 1. Gas object has an address owner.
-    // 2. Gas budget is between min and max budget allowed
-    pub fn check_gas_balance(
-        &self,
-        gas_object: &Object,
-        more_gas_objs: Vec<&Object>,
-        gas_budget: u64,
-        gas_price: u64,
-    ) -> UserInputResult {
-        match self {
-            Self::V1(cost_table) => gas_v1::check_gas_balance(
-                gas_object,
-                more_gas_objs,
-                gas_budget,
-                gas_price,
-                cost_table,
-            ),
-            Self::V2(cost_table) => gas_v2::check_gas_balance(
-                gas_object,
-                more_gas_objs,
-                gas_budget,
-                cost_table,
-            ),
-        }
-    }
-
-    pub fn into_gas_status_for_testing(
-        self,
-        gas_budget: u64,
-        gas_price: u64,
-        storage_price: u64,
-    ) -> SuiGasStatus {
-        match self {
-            Self::V1(cost_table) => SuiGasStatus::V1(SuiGasStatusV1::new_for_testing(
-                gas_budget,
-                gas_price,
-                storage_price,
-                cost_table,
-            )),
-            Self::V2(cost_table) => SuiGasStatus::V2(SuiGasStatusV2::new_for_testing(
-                gas_budget,
-                gas_price,
-                storage_price,
-                cost_table,
-            )),
-        }
-    }
-}
 
 /// Summary of the charges in a transaction.
 /// Storage is charged independently of computation.
@@ -242,33 +89,6 @@ impl GasCostSummary {
     /// Get net gas usage, positive number means used gas; negative number means refund.
     pub fn net_gas_usage(&self) -> i64 {
         self.gas_used() as i64 - self.storage_rebate as i64
-    }
-
-    pub fn new_from_txn_effects<'a>(
-        transactions: impl Iterator<Item = &'a TransactionEffects>,
-    ) -> GasCostSummary {
-        let (storage_costs, computation_costs, storage_rebates, non_refundable_storage_fee): (
-            Vec<u64>,
-            Vec<u64>,
-            Vec<u64>,
-            Vec<u64>,
-        ) = transactions
-            .map(|e| {
-                (
-                    e.gas_cost_summary().storage_cost,
-                    e.gas_cost_summary().computation_cost,
-                    e.gas_cost_summary().storage_rebate,
-                    e.gas_cost_summary().non_refundable_storage_fee,
-                )
-            })
-            .multiunzip();
-
-        GasCostSummary {
-            storage_cost: storage_costs.iter().sum(),
-            computation_cost: computation_costs.iter().sum(),
-            storage_rebate: storage_rebates.iter().sum(),
-            non_refundable_storage_fee: non_refundable_storage_fee.iter().sum(),
-        }
     }
 }
 

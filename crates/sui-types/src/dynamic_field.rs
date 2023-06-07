@@ -1,15 +1,13 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::base_types::{ObjectDigest, SuiAddress};
-use crate::crypto::DefaultHash;
+use crate::base_types::ObjectDigest;
 use crate::error::{SuiError, SuiResult};
 use crate::id::UID;
 use crate::sui_serde::Readable;
 use crate::sui_serde::SuiTypeTag;
 use crate::{ObjectID, SequenceNumber, SUI_FRAMEWORK_ADDRESS};
 use fastcrypto::encoding::Base58;
-use fastcrypto::hash::HashFunction;
 use move_core_types::ident_str;
 use move_core_types::identifier::IdentStr;
 use move_core_types::language_storage::{StructTag, TypeTag};
@@ -20,7 +18,6 @@ use serde::Serialize;
 use serde_json::Value;
 use serde_with::serde_as;
 use serde_with::DisplayFromStr;
-use shared_crypto::intent::HashingIntentScope;
 use alloc::fmt::{Display, Formatter};
 
 const DYNAMIC_FIELD_MODULE_NAME: &IdentStr = ident_str!("dynamic_field");
@@ -237,28 +234,4 @@ pub fn is_dynamic_object(move_struct: &MoveStruct) -> bool {
         }
         _ => false,
     }
-}
-
-pub fn derive_dynamic_field_id<T>(
-    parent: T,
-    key_type_tag: &TypeTag,
-    key_bytes: &[u8],
-) -> Result<ObjectID, bcs::Error>
-where
-    T: Into<SuiAddress>,
-{
-    let k_tag_bytes = bcs::to_bytes(key_type_tag)?;
-
-    // hash(parent || len(key) || key || key_type_tag)
-    let mut hasher = DefaultHash::default();
-    hasher.update([HashingIntentScope::ChildObjectId as u8]);
-    hasher.update(parent.into());
-    hasher.update(key_bytes.len().to_le_bytes());
-    hasher.update(key_bytes);
-    hasher.update(k_tag_bytes);
-    let hash = hasher.finalize();
-
-    // truncate into an ObjectID and return
-    // OK to access slice because digest should never be shorter than ObjectID::LENGTH.
-    Ok(ObjectID::try_from(&hash.as_ref()[0..ObjectID::LENGTH]).unwrap())
 }

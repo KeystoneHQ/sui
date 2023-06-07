@@ -43,7 +43,6 @@ move-disassembler.workspace = true
 move-ir-types.workspace = true
 move-vm-types.workspace = true
 
-sui-cost-tables = { path = "../sui-cost-tables"}
 sui-protocol-config = { path = "../sui-protocol-config" }
 shared-crypto = { path = "../shared-crypto" }
 sui-macros = { path = "../sui-macros" }
