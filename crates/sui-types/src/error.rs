@@ -16,7 +16,6 @@ use alloc::{collections::BTreeMap, fmt::Debug};
 use strum_macros::{AsRefStr, IntoStaticStr};
 use thiserror::Error;
 use tonic::Status;
-use typed_store::rocks::TypedStoreError;
 
 pub const TRANSACTION_NOT_FOUND_MSG_PREFIX: &str = "Could not find the referenced transaction";
 pub const TRANSACTIONS_NOT_FOUND_MSG_PREFIX: &str = "Could not find the referenced transactions";
@@ -407,8 +406,6 @@ pub enum SuiError {
         authority: AuthorityName,
         reason: String,
     },
-    #[error("Storage error")]
-    StorageError(#[from] TypedStoreError),
     #[error("Non-RocksDB Storage error: {0}")]
     GenericStorageError(String),
     #[error(
