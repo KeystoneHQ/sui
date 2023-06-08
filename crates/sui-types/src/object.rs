@@ -23,7 +23,6 @@ use crate::base_types::{MoveObjectType, ObjectIDParseError};
 use crate::coin::Coin;
 use crate::error::{ExecutionError, ExecutionErrorKind, UserInputError, UserInputResult};
 use crate::error::{SuiError, SuiResult};
-use crate::is_system_package;
 use crate::move_package::MovePackage;
 use crate::type_resolver::LayoutResolver;
 use crate::{
@@ -35,6 +34,18 @@ use crate::{
 
 pub const GAS_VALUE_FOR_TESTING: u64 = 300_000_000_000_000;
 pub const OBJECT_START_VERSION: SequenceNumber = SequenceNumber::from_u64(1);
+
+/// Return `true` if `id` is a special system package that can be upgraded at epoch boundaries
+/// All new system package ID's must be added here
+pub fn is_system_package(id: ObjectID) -> bool {
+    matches!(
+        id,
+        crate::MOVE_STDLIB_PACKAGE_ID
+            |crate::SUI_FRAMEWORK_PACKAGE_ID
+            | crate::SUI_SYSTEM_PACKAGE_ID
+            | crate::DEEPBOOK_PACKAGE_ID
+    )
+}
 
 #[serde_as]
 #[derive(Eq, PartialEq, Debug, Clone, Deserialize, Serialize, Hash)]

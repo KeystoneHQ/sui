@@ -2,9 +2,9 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-use super::{base_types::*, error::*};
+use crate::base_types::{ObjectID, ObjectRef, SequenceNumber, SuiAddress, TransactionDigest};
 use crate::committee::EpochId;
-use crate::sui_protocol_config::ProtocolVersion;
+use crate::error::UserInputError;
 use crate::object::{MoveObject, Object, Owner};
 use crate::programmable_transaction_builder::ProgrammableTransactionBuilder;
 use crate::{
@@ -16,10 +16,7 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use alloc::vec;
 use alloc::borrow::ToOwned;
-use enum_dispatch::enum_dispatch;
-use itertools::Either;
 use move_core_types::ident_str;
-use move_core_types::identifier::IdentStr;
 use move_core_types::{identifier::Identifier, language_storage::TypeTag};
 use serde::{Deserialize, Serialize};
 use alloc::fmt::Write;
@@ -27,12 +24,7 @@ use alloc::fmt::{Debug, Display, Formatter};
 use alloc::{
     collections::{BTreeMap, BTreeSet},
 };
-use hashbrown::HashSet;
-use core::{
-    hash::Hash,
-    iter,
-};
-use strum::IntoStaticStr;
+use core::hash::Hash;
 
 // TODO: The following constants appear to be very large.
 // We should revisit them.
@@ -84,80 +76,9 @@ pub enum ObjectArg {
 }
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Serialize, Deserialize)]
-pub struct ChangeEpoch {
-    /// The next (to become) epoch ID.
-    pub epoch: EpochId,
-    /// The protocol version in effect in the new epoch.
-    pub protocol_version: ProtocolVersion,
-    /// The total amount of gas charged for storage during the epoch.
-    pub storage_charge: u64,
-    /// The total amount of gas charged for computation during the epoch.
-    pub computation_charge: u64,
-    /// The amount of storage rebate refunded to the txn senders.
-    pub storage_rebate: u64,
-    /// The non-refundable storage fee.
-    pub non_refundable_storage_fee: u64,
-    /// Unix timestamp when epoch started
-    pub epoch_start_timestamp_ms: u64,
-    /// System packages (specifically framework and move stdlib) that are written before the new
-    /// epoch starts. This tracks framework upgrades on chain. When executing the ChangeEpoch txn,
-    /// the validator must write out the modules below.  Modules are provided with the version they
-    /// will be upgraded to, their modules in serialized form (which include their package ID), and
-    /// a list of their transitive dependencies.
-    pub system_packages: Vec<(SequenceNumber, Vec<Vec<u8>>, Vec<ObjectID>)>,
-}
-
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Serialize, Deserialize)]
-pub struct GenesisTransaction {
-    pub objects: Vec<GenesisObject>,
-}
-
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Serialize, Deserialize)]
-pub enum GenesisObject {
-    RawObject {
-        data: crate::object::Data,
-        owner: crate::object::Owner,
-    },
-}
-
-impl GenesisObject {
-    pub fn id(&self) -> ObjectID {
-        match self {
-            GenesisObject::RawObject { data, .. } => data.id(),
-        }
-    }
-}
-
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Serialize, Deserialize, IntoStaticStr)]
 pub enum TransactionKind {
     /// A transaction that allows the interleaving of native commands and Move calls
     ProgrammableTransaction(ProgrammableTransaction),
-}
-
-impl CallArg {
-    fn input_objects(&self) -> Vec<InputObjectKind> {
-        match self {
-            CallArg::Pure(_) => vec![],
-            CallArg::Object(ObjectArg::ImmOrOwnedObject(object_ref)) => {
-                vec![InputObjectKind::ImmOrOwnedMoveObject(*object_ref)]
-            }
-            CallArg::Object(ObjectArg::SharedObject {
-                id,
-                initial_shared_version,
-                mutable,
-            }) => {
-                let id = *id;
-                let initial_shared_version = *initial_shared_version;
-                let mutable = *mutable;
-                vec![InputObjectKind::SharedMoveObject {
-                    id,
-                    initial_shared_version,
-                    mutable,
-                }]
-            }
-        }
-    }
-
 }
 
 impl From<bool> for CallArg {
@@ -225,29 +146,6 @@ impl ObjectArg {
     pub fn id(&self) -> ObjectID {
         match self {
             ObjectArg::ImmOrOwnedObject((id, _, _)) | ObjectArg::SharedObject { id, .. } => *id,
-        }
-    }
-}
-
-// Add package IDs, `ObjectID`, for types defined in modules.
-fn add_type_tag_packages(packages: &mut BTreeSet<ObjectID>, type_argument: &TypeTag) {
-    let mut stack = vec![type_argument];
-    while let Some(cur) = stack.pop() {
-        match cur {
-            TypeTag::Bool
-            | TypeTag::U8
-            | TypeTag::U64
-            | TypeTag::U128
-            | TypeTag::Address
-            | TypeTag::Signer
-            | TypeTag::U16
-            | TypeTag::U32
-            | TypeTag::U256 => (),
-            TypeTag::Vector(inner) => stack.push(inner),
-            TypeTag::Struct(struct_tag) => {
-                packages.insert(struct_tag.address.into());
-                stack.extend(struct_tag.type_params.iter())
-            }
         }
     }
 }
@@ -328,24 +226,6 @@ pub struct ProgrammableMoveCall {
     pub arguments: Vec<Argument>,
 }
 
-impl ProgrammableMoveCall {
-    fn input_objects(&self) -> Vec<InputObjectKind> {
-        let ProgrammableMoveCall {
-            package,
-            type_arguments,
-            ..
-        } = self;
-        let mut packages = BTreeSet::from([*package]);
-        for type_argument in type_arguments {
-            add_type_tag_packages(&mut packages, type_argument)
-        }
-        packages
-            .into_iter()
-            .map(InputObjectKind::MovePackage)
-            .collect()
-    }
-}
-
 impl Command {
     pub fn move_call(
         package: ObjectID,
@@ -362,45 +242,6 @@ impl Command {
             arguments,
         }))
     }
-
-    fn input_objects(&self) -> Vec<InputObjectKind> {
-        match self {
-            Command::Upgrade(_, deps, package_id, _) => deps
-                .iter()
-                .map(|id| InputObjectKind::MovePackage(*id))
-                .chain(Some(InputObjectKind::MovePackage(*package_id)))
-                .collect(),
-            Command::Publish(_, deps) => deps
-                .iter()
-                .map(|id| InputObjectKind::MovePackage(*id))
-                .collect(),
-            Command::MoveCall(c) => c.input_objects(),
-            Command::MakeMoveVec(Some(t), _) => {
-                let mut packages = BTreeSet::new();
-                add_type_tag_packages(&mut packages, t);
-                packages
-                    .into_iter()
-                    .map(InputObjectKind::MovePackage)
-                    .collect()
-            }
-            Command::MakeMoveVec(None, _)
-            | Command::TransferObjects(_, _)
-            | Command::SplitCoins(_, _)
-            | Command::MergeCoins(_, _) => vec![],
-        }
-    }
-
-    fn non_system_packages_to_be_published(&self) -> Option<&Vec<Vec<u8>>> {
-        match self {
-            Command::Upgrade(v, _, _, _) => Some(v),
-            Command::Publish(v, _) => Some(v),
-            Command::MoveCall(_)
-            | Command::TransferObjects(_, _)
-            | Command::SplitCoins(_, _)
-            | Command::MergeCoins(_, _)
-            | Command::MakeMoveVec(_, _) => None,
-        }
-    }
 }
 
 fn write_sep<T: Display>(
@@ -416,68 +257,6 @@ fn write_sep<T: Display>(
         write!(f, "{x}")?;
     }
     Ok(())
-}
-
-impl ProgrammableTransaction {
-    pub fn input_objects(&self) -> UserInputResult<Vec<InputObjectKind>> {
-        let ProgrammableTransaction { inputs, commands } = self;
-        let input_arg_objects = inputs
-            .iter()
-            .flat_map(|arg| arg.input_objects())
-            .collect::<Vec<_>>();
-        // all objects, not just mutable, must be unique
-        let mut used = HashSet::new();
-        if !input_arg_objects.iter().all(|o| used.insert(o.object_id())) {
-            return Err(UserInputError::DuplicateObjectRefInput);
-        }
-        // do not duplicate packages referred to in commands
-        let command_input_objects: BTreeSet<InputObjectKind> = commands
-            .iter()
-            .flat_map(|command| command.input_objects())
-            .collect();
-        Ok(input_arg_objects
-            .into_iter()
-            .chain(command_input_objects)
-            .collect())
-    }
-
-    fn shared_input_objects(&self) -> impl Iterator<Item = SharedInputObject> + '_ {
-        self.inputs
-            .iter()
-            .filter_map(|arg| match arg {
-                CallArg::Pure(_) | CallArg::Object(ObjectArg::ImmOrOwnedObject(_)) => None,
-                CallArg::Object(ObjectArg::SharedObject {
-                    id,
-                    initial_shared_version,
-                    mutable,
-                }) => Some(vec![SharedInputObject {
-                    id: *id,
-                    initial_shared_version: *initial_shared_version,
-                    mutable: *mutable,
-                }]),
-            })
-            .flatten()
-    }
-
-    fn move_calls(&self) -> Vec<(&ObjectID, &IdentStr, &IdentStr)> {
-        self.commands
-            .iter()
-            .filter_map(|command| match command {
-                Command::MoveCall(m) => Some((
-                    &m.package,
-                    m.module.as_ident_str(),
-                    m.function.as_ident_str(),
-                )),
-                _ => None,
-            })
-            .collect()
-    }
-
-    pub fn non_system_packages_to_be_published(&self) -> impl Iterator<Item = &Vec<Vec<u8>>> + '_ {
-        self.commands
-            .iter()
-            .filter_map(|q| q.non_system_packages_to_be_published())
-    }
 }
 
 impl Display for Argument {
@@ -595,77 +374,6 @@ impl SharedInputObject {
     }
 }
 
-impl TransactionKind {
-    /// present to make migrations to programmable transactions eaier.
-    /// Will be removed
-    pub fn programmable(pt: ProgrammableTransaction) -> Self {
-        TransactionKind::ProgrammableTransaction(pt)
-    }
-
-    pub fn contains_shared_object(&self) -> bool {
-        self.shared_input_objects().next().is_some()
-    }
-
-    /// Returns an iterator of all shared input objects used by this transaction.
-    /// It covers both Call and ChangeEpoch transaction kind, because both makes Move calls.
-    pub fn shared_input_objects(&self) -> impl Iterator<Item = SharedInputObject> + '_ {
-        match &self {
-            Self::ProgrammableTransaction(pt) => {
-                Either::Left(pt.shared_input_objects())
-            }
-            #[allow(unreachable_patterns)]
-            _ => Either::Right(iter::empty()),
-        }
-    }
-
-    fn move_calls(&self) -> Vec<(&ObjectID, &IdentStr, &IdentStr)> {
-        match &self {
-            Self::ProgrammableTransaction(pt) => pt.move_calls(),
-        }
-    }
-
-    /// Return the metadata of each of the input objects for the transaction.
-    /// For a Move object, we attach the object reference;
-    /// for a Move package, we provide the object id only since they never change on chain.
-    /// TODO: use an iterator over references here instead of a Vec to avoid allocations.
-    pub fn input_objects(&self) -> UserInputResult<Vec<InputObjectKind>> {
-        let input_objects = match &self {
-            Self::ProgrammableTransaction(p) => {
-                p.input_objects()
-            },
-        };
-        // Ensure that there are no duplicate inputs. This cannot be removed because:
-        // In [`AuthorityState::check_locks`], we check that there are no duplicate mutable
-        // input objects, which would have made this check here unnecessary. However we
-        // do plan to allow shared objects show up more than once in multiple single
-        // transactions down the line. Once we have that, we need check here to make sure
-        // the same shared object doesn't show up more than once in the same single
-        // transaction.
-        if let Ok(objects) = input_objects {
-            let mut used = HashSet::new();
-            if !objects.iter().all(|o| used.insert(o.object_id())) {
-                return Err(UserInputError::DuplicateObjectRefInput);
-            }
-            Ok(objects)
-        } else {
-            input_objects
-        }
-    }
-
-    /// number of commands, or 0 if it is a system transaction
-    pub fn num_commands(&self) -> usize {
-        match self {
-            TransactionKind::ProgrammableTransaction(pt) => pt.commands.len(),
-        }
-    }
-
-    pub fn iter_commands(&self) -> impl Iterator<Item = &Command> {
-        match self {
-            TransactionKind::ProgrammableTransaction(pt) => pt.commands.iter(),
-        }
-    }
-}
-
 impl Display for TransactionKind {
     fn fmt(&self, f: &mut Formatter<'_>) -> alloc::fmt::Result {
         let mut writer = String::new();
@@ -696,7 +404,6 @@ pub enum TransactionExpiration {
     Epoch(EpochId),
 }
 
-#[enum_dispatch(TransactionDataAPI)]
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Serialize, Deserialize)]
 pub enum TransactionData {
     V1(TransactionDataV1),
@@ -739,23 +446,6 @@ impl TransactionData {
         })
     }
 
-    pub fn new_with_gas_coins(
-        kind: TransactionKind,
-        sender: SuiAddress,
-        gas_payment: Vec<ObjectRef>,
-        gas_budget: u64,
-        gas_price: u64,
-    ) -> Self {
-        Self::new_with_gas_coins_allow_sponsor(
-            kind,
-            sender,
-            gas_payment,
-            gas_budget,
-            gas_price,
-            sender,
-        )
-    }
-
     pub fn new_with_gas_coins_allow_sponsor(
         kind: TransactionKind,
         sender: SuiAddress,
@@ -773,15 +463,6 @@ impl TransactionData {
                 payment: gas_payment,
                 budget: gas_budget,
             },
-            expiration: TransactionExpiration::None,
-        })
-    }
-
-    pub fn new_with_gas_data(kind: TransactionKind, sender: SuiAddress, gas_data: GasData) -> Self {
-        TransactionData::V1(TransactionDataV1 {
-            kind,
-            sender,
-            gas_data,
             expiration: TransactionExpiration::None,
         })
     }
@@ -1064,175 +745,6 @@ impl TransactionData {
             sponsor,
         )
     }
-
-    pub fn execution_parts(&self) -> (TransactionKind, SuiAddress, Vec<ObjectRef>) {
-        (
-            self.kind().clone(),
-            self.sender(),
-            self.gas_data().payment.clone(),
-        )
-    }
-}
-
-#[enum_dispatch]
-pub trait TransactionDataAPI {
-    fn sender(&self) -> SuiAddress;
-
-    // Note: this implies that SingleTransactionKind itself must be versioned, so that it can be
-    // shared across versions. This will be easy to do since it is already an enum.
-    fn kind(&self) -> &TransactionKind;
-
-    // Used by programmable_transaction_builder
-    fn kind_mut(&mut self) -> &mut TransactionKind;
-
-    // kind is moved out of often enough that this is worth it to special case.
-    fn into_kind(self) -> TransactionKind;
-
-    /// Transaction signer and Gas owner
-    fn signers(&self) -> Vec<SuiAddress>;
-
-    fn gas_data(&self) -> &GasData;
-
-    fn gas_owner(&self) -> SuiAddress;
-
-    fn gas(&self) -> &[ObjectRef];
-
-    fn gas_price(&self) -> u64;
-
-    fn gas_budget(&self) -> u64;
-
-    fn expiration(&self) -> &TransactionExpiration;
-
-    fn contains_shared_object(&self) -> bool;
-
-    fn shared_input_objects(&self) -> Vec<SharedInputObject>;
-
-    fn move_calls(&self) -> Vec<(&ObjectID, &IdentStr, &IdentStr)>;
-
-    fn input_objects(&self) -> UserInputResult<Vec<InputObjectKind>>;
-
-    /// Check if the transaction is compliant with sponsorship.
-    fn check_sponsorship(&self) -> UserInputResult;
-
-    /// Check if the transaction is sponsored (namely gas owner != sender)
-    fn is_sponsored_tx(&self) -> bool;
-
-    #[cfg(test)]
-    fn sender_mut(&mut self) -> &mut SuiAddress;
-
-    #[cfg(test)]
-    fn gas_data_mut(&mut self) -> &mut GasData;
-
-    // This should be used in testing only.
-    fn expiration_mut_for_testing(&mut self) -> &mut TransactionExpiration;
-}
-
-impl TransactionDataAPI for TransactionDataV1 {
-    fn sender(&self) -> SuiAddress {
-        self.sender
-    }
-
-    fn kind(&self) -> &TransactionKind {
-        &self.kind
-    }
-
-    fn kind_mut(&mut self) -> &mut TransactionKind {
-        &mut self.kind
-    }
-
-    fn into_kind(self) -> TransactionKind {
-        self.kind
-    }
-
-    /// Transaction signer and Gas owner
-    fn signers(&self) -> Vec<SuiAddress> {
-        let mut signers = vec![self.sender];
-        if self.gas_owner() != self.sender {
-            signers.push(self.gas_owner());
-        }
-        signers
-    }
-
-    fn gas_data(&self) -> &GasData {
-        &self.gas_data
-    }
-
-    fn gas_owner(&self) -> SuiAddress {
-        self.gas_data.owner
-    }
-
-    fn gas(&self) -> &[ObjectRef] {
-        &self.gas_data.payment
-    }
-
-    fn gas_price(&self) -> u64 {
-        self.gas_data.price
-    }
-
-    fn gas_budget(&self) -> u64 {
-        self.gas_data.budget
-    }
-
-    fn expiration(&self) -> &TransactionExpiration {
-        &self.expiration
-    }
-
-    fn contains_shared_object(&self) -> bool {
-        self.kind.shared_input_objects().next().is_some()
-    }
-
-    fn shared_input_objects(&self) -> Vec<SharedInputObject> {
-        self.kind.shared_input_objects().collect()
-    }
-
-    fn move_calls(&self) -> Vec<(&ObjectID, &IdentStr, &IdentStr)> {
-        self.kind.move_calls()
-    }
-
-    fn input_objects(&self) -> UserInputResult<Vec<InputObjectKind>> {
-        let mut inputs = self.kind.input_objects()?;
-
-        inputs.extend(
-            self.gas()
-                .iter()
-                .map(|obj_ref| InputObjectKind::ImmOrOwnedMoveObject(*obj_ref)),
-        );
-        Ok(inputs)
-    }
-
-    /// Check if the transaction is sponsored (namely gas owner != sender)
-    fn is_sponsored_tx(&self) -> bool {
-        self.gas_owner() != self.sender
-    }
-
-    /// Check if the transaction is compliant with sponsorship.
-    fn check_sponsorship(&self) -> UserInputResult {
-        // Not a sponsored transaction, nothing to check
-        if self.gas_owner() == self.sender() {
-            return Ok(());
-        }
-        let allow_sponsored_tx = match &self.kind {
-            TransactionKind::ProgrammableTransaction(_) => true,
-        };
-        if allow_sponsored_tx {
-            return Ok(());
-        }
-        Err(UserInputError::UnsupportedSponsoredTransactionKind)
-    }
-
-    #[cfg(test)]
-    fn sender_mut(&mut self) -> &mut SuiAddress {
-        &mut self.sender
-    }
-
-    #[cfg(test)]
-    fn gas_data_mut(&mut self) -> &mut GasData {
-        &mut self.gas_data
-    }
-
-    fn expiration_mut_for_testing(&mut self) -> &mut TransactionExpiration {
-        &mut self.expiration
-    }
 }
 
 impl TransactionDataV1 {}
@@ -1364,17 +876,3 @@ impl InputObjects {
             .collect()
     }
 }
-
-// impl Display for CertifiedTransaction {
-//     fn fmt(&self, f: &mut Formatter<'_>) -> alloc::fmt::Result {
-//         let mut writer = String::new();
-//         writeln!(writer, "Transaction Hash: {:?}", self.digest())?;
-//         writeln!(
-//             writer,
-//             "Signed Authorities Bitmap : {:?}",
-//             self.auth_sig().signers_map
-//         )?;
-//         write!(writer, "{}", &self.data().intent_message().value.kind())?;
-//         write!(f, "{}", writer)
-//     }
-// }
