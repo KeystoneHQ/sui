@@ -10,7 +10,7 @@ use core::marker::PhantomData;
 use core::ops::Deref;
 use alloc::str::FromStr;
 
-use fastcrypto::encoding::Hex;
+use crate::fastcrypto::encoding::Hex;
 use move_core_types::account_address::AccountAddress;
 use move_core_types::language_storage::{StructTag, TypeTag};
 use serde;

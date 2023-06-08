@@ -37,7 +37,7 @@ use crate::committee::EpochId;
 use crate::error::{SuiError, SuiResult};
 use crate::sui_serde::Readable;
 pub use enum_dispatch::enum_dispatch;
-use fastcrypto::encoding::{Base64, Encoding, Hex};
+use crate::fastcrypto::encoding::{Base64, Encoding, Hex};
 use fastcrypto::error::FastCryptoError;
 use fastcrypto::hash::{Blake2b256, HashFunction};
 pub use fastcrypto::traits::Signer;

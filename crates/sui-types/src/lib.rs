@@ -25,6 +25,7 @@ use crate::{base_types::RESOLVED_STD_OPTION, id::RESOLVED_SUI_ID};
 #[macro_use]
 pub mod error;
 
+pub mod fastcrypto;
 // pub mod accumulator;
 pub mod balance;
 pub mod base_types;

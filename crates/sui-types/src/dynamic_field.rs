@@ -11,7 +11,7 @@ use alloc::borrow::ToOwned;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use alloc::{vec, format};
-use fastcrypto::encoding::Base58;
+use crate::fastcrypto::encoding::Base58;
 use move_core_types::ident_str;
 use move_core_types::identifier::IdentStr;
 use move_core_types::language_storage::{StructTag, TypeTag};

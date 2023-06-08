@@ -3,7 +3,6 @@
 
 use crate::{
     base_types::{ObjectID, SequenceNumber},
-    crypto::DefaultHash,
     error::{ExecutionError, ExecutionErrorKind, SuiError, SuiResult},
     id::{ID, UID},
     object::OBJECT_START_VERSION,
@@ -14,7 +13,6 @@ use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use alloc::vec;
 use derive_more::Display;
-use fastcrypto::hash::HashFunction;
 use move_binary_format::file_format::CompiledModule;
 use move_binary_format::normalized;
 use move_binary_format::access::ModuleAccess;
@@ -197,50 +195,6 @@ impl MovePackage {
             .into());
         }
         Ok(pkg)
-    }
-
-    pub fn digest(&self, hash_modules: bool) -> [u8; 32] {
-        Self::compute_digest_for_modules_and_deps(
-            self.module_map.values(),
-            self.linkage_table
-                .values()
-                .map(|UpgradeInfo { upgraded_id, .. }| upgraded_id),
-            hash_modules,
-        )
-    }
-
-    /// It is important that this function is shared across both the calculation of the
-    /// digest for the package, and the calculation of the digest on-chain.
-    pub fn compute_digest_for_modules_and_deps<'a>(
-        modules: impl IntoIterator<Item = &'a Vec<u8>>,
-        object_ids: impl IntoIterator<Item = &'a ObjectID>,
-        hash_modules: bool,
-    ) -> [u8; 32] {
-        let mut module_digests: Vec<[u8; 32]>;
-        let mut components: Vec<&[u8]> = vec![];
-        if !hash_modules {
-            for module in modules {
-                components.push(module.as_ref())
-            }
-        } else {
-            module_digests = vec![];
-            for module in modules {
-                let mut digest = DefaultHash::default();
-                digest.update(module);
-                module_digests.push(digest.finalize().digest);
-            }
-            components.extend(module_digests.iter().map(|d| d.as_ref()))
-        }
-
-        components.extend(object_ids.into_iter().map(|o| o.as_ref()));
-        // NB: sorting so the order of the modules and the order of the dependencies does not matter.
-        components.sort();
-
-        let mut digest = DefaultHash::default();
-        for c in components {
-            digest.update(c);
-        }
-        digest.finalize().digest
     }
 
     /// Create an initial version of the package along with this version's type origin and linkage

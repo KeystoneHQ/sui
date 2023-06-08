@@ -4,7 +4,7 @@
 use alloc::{fmt, string::String};
 
 use crate::sui_serde::Readable;
-use fastcrypto::encoding::{Base58, Encoding};
+use crate::fastcrypto::encoding::{Base58, Encoding};
 use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, Bytes};
