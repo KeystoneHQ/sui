@@ -8,7 +8,7 @@ use derive_more::{AsMut, AsRef, From};
 use eyre::eyre;
 
 use fastcrypto::ed25519::{
-    Ed25519KeyPair, Ed25519PrivateKey, Ed25519PublicKey, Ed25519PublicKeyAsBytes, Ed25519Signature,
+    Ed25519KeyPair, Ed25519PublicKey, Ed25519PublicKeyAsBytes, Ed25519Signature,
     Ed25519SignatureAsBytes,
 };
 use fastcrypto::secp256k1::{
@@ -24,7 +24,6 @@ pub use fastcrypto::traits::{
     AggregateAuthenticator, Authenticator, EncodeDecodeBase64, SigningKey, ToFromBytes,
     VerifyingKey,
 };
-use roaring::RoaringBitmap;
 use serde::ser::Serializer;
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_with::{serde_as, Bytes};
@@ -36,23 +35,13 @@ use strum::EnumString;
 use crate::base_types::SuiAddress;
 use crate::committee::EpochId;
 use crate::error::{SuiError, SuiResult};
-use crate::sui_serde::{Readable, SuiBitmap};
+use crate::sui_serde::Readable;
 pub use enum_dispatch::enum_dispatch;
 use fastcrypto::encoding::{Base64, Encoding, Hex};
 use fastcrypto::error::FastCryptoError;
 use fastcrypto::hash::{Blake2b256, HashFunction};
 pub use fastcrypto::traits::Signer;
 use alloc::fmt::Debug;
-
-// TODO(joyqvq): prefix these types with Default, DefaultAccountKeyPair etc
-pub type AccountKeyPair = Ed25519KeyPair;
-pub type AccountPublicKey = Ed25519PublicKey;
-pub type AccountPrivateKey = Ed25519PrivateKey;
-pub type AccountSignature = Ed25519Signature;
-
-pub type NetworkKeyPair = Ed25519KeyPair;
-pub type NetworkPublicKey = Ed25519PublicKey;
-pub type NetworkPrivateKey = Ed25519PrivateKey;
 
 pub type DefaultHash = Blake2b256;
 
