@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use hex::FromHex;
-use rand::{rngs::OsRng, Rng};
 use serde::{de::Error as _, Deserialize, Deserializer, Serialize, Serializer};
 use std::{convert::TryFrom, fmt, str::FromStr};
 
@@ -49,12 +48,6 @@ impl AccountAddress {
         let mut addr = [0u8; AccountAddress::LENGTH];
         addr[AccountAddress::LENGTH - 1] = 2u8;
         Self(addr)
-    }
-
-    pub fn random() -> Self {
-        let mut rng = OsRng;
-        let buf: [u8; Self::LENGTH] = rng.gen();
-        Self(buf)
     }
 
     /// Return a canonical string representation of the address

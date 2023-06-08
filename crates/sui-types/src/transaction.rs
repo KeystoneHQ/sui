@@ -2,7 +2,7 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::base_types::{ObjectID, ObjectRef, SequenceNumber, SuiAddress, TransactionDigest};
+use crate::base_types::{ObjectID, ObjectRef, SequenceNumber, SuiAddress};
 use crate::committee::EpochId;
 use crate::error::UserInputError;
 use crate::object::{MoveObject, Object, Owner};
@@ -22,7 +22,7 @@ use serde::{Deserialize, Serialize};
 use alloc::fmt::Write;
 use alloc::fmt::{Debug, Display, Formatter};
 use alloc::{
-    collections::{BTreeMap, BTreeSet},
+    collections::{BTreeMap},
 };
 use core::hash::Hash;
 
@@ -845,13 +845,6 @@ impl InputObjects {
             .collect();
 
         owned_objects
-    }
-
-    pub fn transaction_dependencies(&self) -> BTreeSet<TransactionDigest> {
-        self.objects
-            .iter()
-            .map(|(_, obj)| obj.previous_transaction)
-            .collect()
     }
 
     /// The version to set on objects created by the computation that `self` is input to.

@@ -108,14 +108,6 @@ pub struct ObjectID(
 
 pub type ObjectRef = (ObjectID, SequenceNumber, ObjectDigest);
 
-pub fn random_object_ref() -> ObjectRef {
-    (
-        ObjectID::random(),
-        SequenceNumber::new(),
-        ObjectDigest::new([0; 32]),
-    )
-}
-
 /// Wrapper around StructTag with a space-efficient representation for common types like coins
 /// The StructTag for a gas coin is 84 bytes, so using 1 byte instead is a win.
 /// The inner representation is private to prevent incorrectly constructing an `Other` instead of
@@ -757,11 +749,6 @@ impl ObjectID {
     /// Const fn variant of `<ObjectID as From<AccountAddress>>::from`
     pub const fn from_address(addr: AccountAddress) -> Self {
         Self(addr)
-    }
-
-    /// Return a random ObjectID.
-    pub fn random() -> Self {
-        Self::from(AccountAddress::random())
     }
 
     /// Return the underlying bytes buffer of the ObjectID.
