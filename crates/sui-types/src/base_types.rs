@@ -358,29 +358,6 @@ impl FromStr for ObjectType {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Debug)]
-pub struct ObjectInfo {
-    pub object_id: ObjectID,
-    pub version: SequenceNumber,
-    pub digest: ObjectDigest,
-    pub type_: ObjectType,
-    pub owner: Owner,
-    pub previous_transaction: TransactionDigest,
-}
-
-impl ObjectInfo {
-    pub fn new(oref: &ObjectRef, o: &Object) -> Self {
-        let (object_id, version, digest) = *oref;
-        Self {
-            object_id,
-            version,
-            digest,
-            type_: o.into(),
-            owner: o.owner,
-            previous_transaction: o.previous_transaction,
-        }
-    }
-}
 const PACKAGE: &str = "package";
 impl ObjectType {
     pub fn is_gas_coin(&self) -> bool {
@@ -398,18 +375,6 @@ impl ObjectType {
 
     pub fn is_package(&self) -> bool {
         matches!(self, ObjectType::Package)
-    }
-}
-
-impl From<ObjectInfo> for ObjectRef {
-    fn from(info: ObjectInfo) -> Self {
-        (info.object_id, info.version, info.digest)
-    }
-}
-
-impl From<&ObjectInfo> for ObjectRef {
-    fn from(info: &ObjectInfo) -> Self {
-        (info.object_id, info.version, info.digest)
     }
 }
 
@@ -654,15 +619,6 @@ pub const RESOLVED_UTF8_STR: (&AccountAddress, &IdentStr, &IdentStr) = (
 pub const TX_CONTEXT_MODULE_NAME: &IdentStr = ident_str!("tx_context");
 pub const TX_CONTEXT_STRUCT_NAME: &IdentStr = ident_str!("TxContext");
 
-#[derive(PartialEq, Eq, Clone, Copy)]
-pub enum TxContextKind {
-    // No TxContext
-    None,
-    // &mut TxContext
-    Mutable,
-    // &TxContext
-    Immutable,
-}
 
 // TODO: rename to version
 impl SequenceNumber {
