@@ -6,10 +6,7 @@ use alloc::vec::Vec;
 use anyhow::{anyhow, Error};
 use derive_more::{AsMut, AsRef, From};
 use eyre::eyre;
-use fastcrypto::bls12381::min_sig::{
-    BLS12381AggregateSignature, BLS12381AggregateSignatureAsBytes, BLS12381KeyPair,
-    BLS12381PrivateKey, BLS12381PublicKey, BLS12381Signature,
-};
+
 use fastcrypto::ed25519::{
     Ed25519KeyPair, Ed25519PrivateKey, Ed25519PublicKey, Ed25519PublicKeyAsBytes, Ed25519Signature,
     Ed25519SignatureAsBytes,
@@ -46,14 +43,6 @@ use fastcrypto::error::FastCryptoError;
 use fastcrypto::hash::{Blake2b256, HashFunction};
 pub use fastcrypto::traits::Signer;
 use alloc::fmt::Debug;
-
-// Authority Objects
-pub type AuthorityKeyPair = BLS12381KeyPair;
-pub type AuthorityPublicKey = BLS12381PublicKey;
-pub type AuthorityPrivateKey = BLS12381PrivateKey;
-pub type AuthoritySignature = BLS12381Signature;
-pub type AggregateAuthoritySignature = BLS12381AggregateSignature;
-pub type AggregateAuthoritySignatureAsBytes = BLS12381AggregateSignatureAsBytes;
 
 // TODO(joyqvq): prefix these types with Default, DefaultAccountKeyPair etc
 pub type AccountKeyPair = Ed25519KeyPair;
@@ -307,7 +296,7 @@ impl PublicKey {
 #[as_ref(forward)]
 pub struct AuthorityPublicKeyBytes(
     #[serde_as(as = "Readable<Base64, Bytes>")]
-    pub [u8; AuthorityPublicKey::LENGTH],
+    pub [u8; 32],
 );
 
 impl AuthorityPublicKeyBytes {
@@ -363,20 +352,6 @@ impl Display for ConciseAuthorityPublicKeyBytes {
     }
 }
 
-impl TryFrom<AuthorityPublicKeyBytes> for AuthorityPublicKey {
-    type Error = FastCryptoError;
-
-    fn try_from(bytes: AuthorityPublicKeyBytes) -> Result<AuthorityPublicKey, Self::Error> {
-        AuthorityPublicKey::from_bytes(bytes.as_ref())
-    }
-}
-
-impl From<&AuthorityPublicKey> for AuthorityPublicKeyBytes {
-    fn from(pk: &AuthorityPublicKey) -> AuthorityPublicKeyBytes {
-        AuthorityPublicKeyBytes::from_bytes(pk.as_ref()).unwrap()
-    }
-}
-
 impl Debug for AuthorityPublicKeyBytes {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), alloc::fmt::Error> {
         self.fmt_impl(f)
@@ -386,40 +361,6 @@ impl Debug for AuthorityPublicKeyBytes {
 impl Display for AuthorityPublicKeyBytes {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), alloc::fmt::Error> {
         self.fmt_impl(f)
-    }
-}
-
-impl ToFromBytes for AuthorityPublicKeyBytes {
-    fn from_bytes(bytes: &[u8]) -> Result<Self, fastcrypto::error::FastCryptoError> {
-        let bytes: [u8; AuthorityPublicKey::LENGTH] = bytes
-            .try_into()
-            .map_err(|_| fastcrypto::error::FastCryptoError::InvalidInput)?;
-        Ok(AuthorityPublicKeyBytes(bytes))
-    }
-}
-
-impl AuthorityPublicKeyBytes {
-    pub const ZERO: Self = Self::new([0u8; AuthorityPublicKey::LENGTH]);
-
-    /// This ensures it's impossible to construct an instance with other than registered lengths
-    pub const fn new(bytes: [u8; AuthorityPublicKey::LENGTH]) -> AuthorityPublicKeyBytes
-where {
-        AuthorityPublicKeyBytes(bytes)
-    }
-}
-
-impl FromStr for AuthorityPublicKeyBytes {
-    type Err = Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let value = Hex::decode(s).map_err(|e| anyhow!(e))?;
-        Self::from_bytes(&value[..]).map_err(|e| anyhow!(e))
-    }
-}
-
-impl Default for AuthorityPublicKeyBytes {
-    fn default() -> Self {
-        Self::ZERO
     }
 }
 
@@ -597,14 +538,6 @@ impl ToFromBytes for Signature {
             _ => Err(FastCryptoError::InvalidInput),
         }
     }
-}
-
-//
-// BLS Port
-//
-
-impl SuiPublicKey for BLS12381PublicKey {
-    const SIGNATURE_SCHEME: SignatureScheme = SignatureScheme::BLS12381;
 }
 
 //
@@ -806,89 +739,9 @@ impl<S: SuiSignatureInner + Sized> SuiSignature for S {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct EmptySignInfo {}
 
-/// Represents at least a quorum (could be more) of authority signatures.
-/// STRONG_THRESHOLD indicates whether to use the quorum threshold for quorum check.
-/// When STRONG_THRESHOLD is true, the quorum is valid when the total stake is
-/// at least the quorum threshold (2f+1) of the committee; when STRONG_THRESHOLD is false,
-/// the quorum is valid when the total stake is at least the validity threshold (f+1) of
-/// the committee.
-#[serde_as]
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct AuthorityQuorumSignInfo<const STRONG_THRESHOLD: bool> {
-    pub epoch: EpochId,
-    pub signature: AggregateAuthoritySignature,
-    #[serde_as(as = "SuiBitmap")]
-    pub signers_map: RoaringBitmap,
-}
-
-pub type AuthorityStrongQuorumSignInfo = AuthorityQuorumSignInfo<true>;
-
-// Variant of [AuthorityStrongQuorumSignInfo] but with a serialized signature, to be used in
-// external APIs.
-#[serde_as]
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct SuiAuthorityStrongQuorumSignInfo {
-    pub epoch: EpochId,
-    pub signature: AggregateAuthoritySignatureAsBytes,
-    #[serde_as(as = "SuiBitmap")]
-    pub signers_map: RoaringBitmap,
-}
-
-impl From<&AuthorityStrongQuorumSignInfo> for SuiAuthorityStrongQuorumSignInfo {
-    fn from(info: &AuthorityStrongQuorumSignInfo) -> Self {
-        Self {
-            epoch: info.epoch,
-            signature: (&info.signature).into(),
-            signers_map: info.signers_map.clone(),
-        }
-    }
-}
-
-impl TryFrom<&SuiAuthorityStrongQuorumSignInfo> for AuthorityStrongQuorumSignInfo {
-    type Error = FastCryptoError;
-
-    fn try_from(info: &SuiAuthorityStrongQuorumSignInfo) -> Result<Self, Self::Error> {
-        Ok(Self {
-            epoch: info.epoch,
-            signature: (&info.signature).try_into()?,
-            signers_map: info.signers_map.clone(),
-        })
-    }
-}
-
-// Note: if you meet an error due to this line it may be because you need an Eq implementation for `CertifiedTransaction`,
-// or one of the structs that include it, i.e. `ConfirmationTransaction`, `TransactionInfoResponse` or `ObjectInfoResponse`.
-//
-// Please note that any such implementation must be agnostic to the exact set of signatures in the certificate, as
-// clients are allowed to equivocate on the exact nature of valid certificates they send to the system. This assertion
-// is a simple tool to make sure certificates are accounted for correctly - should you remove it, you're on your own to
-// maintain the invariant that valid certificates with distinct signatures are equivalent, but yet-unchecked
-// certificates that differ on signers aren't.
-//
-// see also https://github.com/MystenLabs/sui/issues/266
-static_assertions::assert_not_impl_any!(AuthorityStrongQuorumSignInfo: Hash, Eq, PartialEq);
-
-impl<const S: bool> Display for AuthorityQuorumSignInfo<S> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> alloc::fmt::Result {
-        writeln!(
-            f,
-            "{} {{ epoch: {:?}, signers_map: {:?} }}",
-            if S {
-                "AuthorityStrongQuorumSignInfo"
-            } else {
-                "AuthorityWeakQuorumSignInfo"
-            },
-            self.epoch,
-            self.signers_map,
-        )?;
-        Ok(())
-    }
-}
-
 mod private {
     pub trait SealedAuthoritySignInfoTrait {}
     impl SealedAuthoritySignInfoTrait for super::EmptySignInfo {}
-    impl<const S: bool> SealedAuthoritySignInfoTrait for super::AuthorityQuorumSignInfo<S> {}
 }
 
 /// Something that we know how to hash and sign.
