@@ -5,23 +5,18 @@ use alloc::format;
 use alloc::str::FromStr;
 
 use alloc::string::String;
-use alloc::string::ToString;
 use alloc::vec::Vec;
 use anyhow::ensure;
-use move_bytecode_utils::module_cache::GetModule;
 use move_core_types::account_address::AccountAddress;
 use move_core_types::identifier::IdentStr;
 use move_core_types::identifier::Identifier;
 use move_core_types::language_storage::StructTag;
-use move_core_types::value::MoveStruct;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use serde_with::serde_as;
 use serde_with::Bytes;
 
 use crate::base_types::{ObjectID, SuiAddress, TransactionDigest};
-use crate::error::{SuiError, SuiResult};
-use crate::object::{MoveObject, ObjectFormatOptions};
 use crate::sui_serde::BigInt;
 use crate::sui_serde::Readable;
 
@@ -124,21 +119,5 @@ impl Event {
             type_,
             contents,
         }
-    }
-    pub fn move_event_to_move_struct(
-        type_: &StructTag,
-        contents: &[u8],
-        resolver: &impl GetModule,
-    ) -> SuiResult<MoveStruct> {
-        let layout = MoveObject::get_layout_from_struct_tag(
-            type_.clone(),
-            ObjectFormatOptions::default(),
-            resolver,
-        )?;
-        MoveStruct::simple_deserialize(contents, &layout).map_err(|e| {
-            SuiError::ObjectSerializationError {
-                error: e.to_string(),
-            }
-        })
     }
 }

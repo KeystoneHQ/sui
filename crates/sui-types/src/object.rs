@@ -3,18 +3,15 @@
 
 use core::convert::TryFrom;
 use alloc::borrow::ToOwned;
-use alloc::boxed::Box;
 use alloc::fmt::{Debug, Display, Formatter};
 use alloc::string::ToString;
 use alloc::vec::Vec;
 use core::mem::size_of;
 
 use move_binary_format::CompiledModule;
-use move_bytecode_utils::layout::TypeLayoutBuilder;
-use move_bytecode_utils::module_cache::GetModule;
 use move_core_types::language_storage::StructTag;
 use move_core_types::language_storage::TypeTag;
-use move_core_types::value::{MoveStruct, MoveStructLayout, MoveTypeLayout, MoveValue};
+use move_core_types::value::{MoveStruct, MoveStructLayout};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use serde_with::Bytes;
@@ -240,39 +237,6 @@ impl MoveObject {
         (self.type_, self.contents)
     }
 
-    /// Get a `MoveStructLayout` for `self`.
-    /// The `resolver` value must contain the module that declares `self.type_` and the (transitive)
-    /// dependencies of `self.type_` in order for this to succeed. Failure will result in an `ObjectSerializationError`
-    pub fn get_layout(
-        &self,
-        format: ObjectFormatOptions,
-        resolver: &impl GetModule,
-    ) -> Result<MoveStructLayout, SuiError> {
-        Self::get_layout_from_struct_tag(self.type_().clone().into(), format, resolver)
-    }
-
-    pub fn get_layout_from_struct_tag(
-        struct_tag: StructTag,
-        format: ObjectFormatOptions,
-        resolver: &impl GetModule,
-    ) -> Result<MoveStructLayout, SuiError> {
-        let type_ = TypeTag::Struct(Box::new(struct_tag));
-        let layout = if format.include_types {
-            TypeLayoutBuilder::build_with_types(&type_, resolver)
-        } else {
-            TypeLayoutBuilder::build_with_fields(&type_, resolver)
-        }
-        .map_err(|e| SuiError::ObjectSerializationError {
-            error: e.to_string(),
-        })?;
-        match layout {
-            MoveTypeLayout::Struct(l) => Ok(l),
-            _ => unreachable!(
-                "We called build_with_types on Struct type, should get a struct layout"
-            ),
-        }
-    }
-
     /// Convert `self` to the JSON representation dictated by `layout`.
     pub fn to_move_struct(&self, layout: &MoveStructLayout) -> Result<MoveStruct, SuiError> {
         MoveStruct::simple_deserialize(&self.contents, layout).map_err(|e| {
@@ -280,15 +244,6 @@ impl MoveObject {
                 error: e.to_string(),
             }
         })
-    }
-
-    /// Convert `self` to the JSON representation dictated by `layout`.
-    pub fn to_move_struct_with_resolver(
-        &self,
-        format: ObjectFormatOptions,
-        resolver: &impl GetModule,
-    ) -> Result<MoveStruct, SuiError> {
-        self.to_move_struct(&self.get_layout(format, resolver)?)
     }
 
     /// Approximate size of the object in bytes. This is used for gas metering.
@@ -301,35 +256,6 @@ impl MoveObject {
         // + 1 for 'has_public_transfer'
         // + 8 for `version`
         self.contents.len() + serialized_type_tag_size + 1 + 8
-    }
-
-    /// Get all SUI in `s`, either directly or in its (transitive) fields. Intended for testing purposes
-    fn get_total_sui_in_struct(s: &MoveStruct, acc: u64) -> u64 {
-        match s {
-            MoveStruct::WithTypes { type_, fields } => {
-                if GasCoin::is_gas_balance(type_) {
-                    match fields[0].1 {
-                        MoveValue::U64(n) => acc + n,
-                        _ => unreachable!(), // a Balance<SUI> object should have exactly one field, of type int
-                    }
-                } else {
-                    fields
-                        .iter()
-                        .fold(acc, |acc, (_, v)| Self::get_total_sui_in_value(v, acc))
-                }
-            }
-            _ => unreachable!(),
-        }
-    }
-
-    fn get_total_sui_in_value(v: &MoveValue, acc: u64) -> u64 {
-        match v {
-            MoveValue::Struct(s) => Self::get_total_sui_in_struct(s, acc),
-            MoveValue::Vector(vec) => vec
-                .iter()
-                .fold(acc, |acc, v| Self::get_total_sui_in_value(v, acc)),
-            _ => acc,
-        }
     }
 }
 
@@ -665,20 +591,6 @@ impl Object {
     /// Change the owner of `self` to `new_owner`.
     pub fn transfer(&mut self, new_owner: SuiAddress) {
         self.owner = Owner::AddressOwner(new_owner);
-    }
-
-    /// Get a `MoveStructLayout` for `self`.
-    /// The `resolver` value must contain the module that declares `self.type_` and the (transitive)
-    /// dependencies of `self.type_` in order for this to succeed. Failure will result in an `ObjectSerializationError`
-    pub fn get_layout(
-        &self,
-        format: ObjectFormatOptions,
-        resolver: &impl GetModule,
-    ) -> Result<Option<MoveStructLayout>, SuiError> {
-        match &self.data {
-            Data::Move(m) => Ok(Some(m.get_layout(format, resolver)?)),
-            Data::Package(_) => Ok(None),
-        }
     }
 
     /// Treat the object type as a Move struct with one type parameter,
