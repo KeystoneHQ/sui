@@ -25,7 +25,6 @@ pub mod digests;
 pub mod dynamic_field;
 pub mod effects;
 pub mod event;
-pub mod executable_transaction;
 pub mod execution_status;
 pub mod gas;
 pub mod gas_coin;
