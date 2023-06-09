@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::ObjectID;
-use move_binary_format::file_format::{CodeOffset, TypeParameterIndex};
 use move_core_types::language_storage::ModuleId;
 use serde::{Deserialize, Serialize};
 use alloc::{fmt::{Display, Formatter}, string::String, vec::Vec};
@@ -118,7 +117,7 @@ pub enum ExecutionFailureStatus {
     },
     #[error("Error for type argument at index {argument_idx}: {kind}")]
     TypeArgumentError {
-        argument_idx: TypeParameterIndex,
+        argument_idx: u16,
         kind: TypeArgumentError,
     },
     #[error(
@@ -185,7 +184,7 @@ pub enum ExecutionFailureStatus {
 pub struct MoveLocation {
     pub module: ModuleId,
     pub function: u16,
-    pub instruction: CodeOffset,
+    pub instruction: u16,
     pub function_name: Option<String>,
 }
 

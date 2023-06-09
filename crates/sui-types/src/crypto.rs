@@ -38,7 +38,7 @@ use crate::sui_serde::Readable;
 pub use enum_dispatch::enum_dispatch;
 use crate::fastcrypto::encoding::{Base64, Encoding, Hex};
 use fastcrypto::error::FastCryptoError;
-use fastcrypto::hash::{Blake2b256};
+use fastcrypto::hash::Blake2b256;
 pub use fastcrypto::traits::Signer;
 use alloc::fmt::Debug;
 

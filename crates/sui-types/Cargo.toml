@@ -34,13 +34,15 @@ hex = { version = "0.4.3", default-features = false, features = ["alloc"] }
 bs58 = { version = "0.4.0", default-features = false, features = ["alloc"] }
 signature = { version = "2.0", default-features = false, features = ["alloc"] }
 
+# no-std
 bcs.workspace = true
+
 move-binary-format.workspace = true
 move-command-line-common.workspace = true
 move-core-types.workspace = true
-move-ir-types.workspace = true
 move-vm-types.workspace = true
 
+# no-std
 sui-macros = { path = "../sui-macros" }
 
 fastcrypto = { workspace = true, features = ["experimental"] }

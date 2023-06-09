@@ -14,7 +14,6 @@ use alloc::vec::Vec;
 use alloc::vec;
 use derive_more::Display;
 use move_binary_format::file_format::CompiledModule;
-use move_binary_format::normalized;
 use move_binary_format::access::ModuleAccess;
 use move_core_types::{
     account_address::AccountAddress,
@@ -358,18 +357,6 @@ impl MovePackage {
             error: error.to_string(),
         })
     }
-
-    pub fn normalize(
-        &self,
-        max_binary_format_version: u32,
-        check_no_bytes_remaining: bool,
-    ) -> SuiResult<BTreeMap<String, normalized::Module>> {
-        normalize_modules(
-            self.module_map.values(),
-            max_binary_format_version,
-            check_no_bytes_remaining,
-        )
-    }
 }
 
 impl UpgradeCap {
@@ -435,42 +422,6 @@ pub fn is_test_fun(name: &IdentStr, module: &CompiledModule, fn_info_map: &FnInf
         Some(fn_info) => fn_info.is_test,
         None => false,
     }
-}
-
-pub fn normalize_modules<'a, I>(
-    modules: I,
-    max_binary_format_version: u32,
-    check_no_bytes_remaining: bool,
-) -> SuiResult<BTreeMap<String, normalized::Module>>
-where
-    I: Iterator<Item = &'a Vec<u8>>,
-{
-    let mut normalized_modules = BTreeMap::new();
-    for bytecode in modules {
-        let module = CompiledModule::deserialize_with_config(
-            bytecode,
-            max_binary_format_version,
-            check_no_bytes_remaining,
-        )
-        .map_err(|error| SuiError::ModuleDeserializationFailure {
-            error: error.to_string(),
-        })?;
-        let normalized_module = normalized::Module::new(&module);
-        normalized_modules.insert(normalized_module.name.to_string(), normalized_module);
-    }
-    Ok(normalized_modules)
-}
-
-pub fn normalize_deserialized_modules<'a, I>(modules: I) -> BTreeMap<String, normalized::Module>
-where
-    I: Iterator<Item = &'a CompiledModule>,
-{
-    let mut normalized_modules = BTreeMap::new();
-    for module in modules {
-        let normalized_module = normalized::Module::new(module);
-        normalized_modules.insert(normalized_module.name.to_string(), normalized_module);
-    }
-    normalized_modules
 }
 
 fn build_linkage_table<'p>(
