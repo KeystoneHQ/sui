@@ -32,14 +32,13 @@ use core::hash::Hash;
 use alloc::str::FromStr;
 use strum::EnumString;
 
-use crate::base_types::SuiAddress;
 use crate::committee::EpochId;
 use crate::error::{SuiError, SuiResult};
 use crate::sui_serde::Readable;
 pub use enum_dispatch::enum_dispatch;
 use crate::fastcrypto::encoding::{Base64, Encoding, Hex};
 use fastcrypto::error::FastCryptoError;
-use fastcrypto::hash::{Blake2b256, HashFunction};
+use fastcrypto::hash::{Blake2b256};
 pub use fastcrypto::traits::Signer;
 use alloc::fmt::Debug;
 
@@ -351,30 +350,6 @@ impl Display for AuthorityPublicKeyBytes {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), alloc::fmt::Error> {
         self.fmt_impl(f)
     }
-}
-
-// TODO: C-GETTER
-pub fn get_key_pair_from_bytes<KP: KeypairTraits>(bytes: &[u8]) -> SuiResult<(SuiAddress, KP)>
-where
-    <KP as KeypairTraits>::PubKey: SuiPublicKey,
-{
-    let priv_length = <KP as KeypairTraits>::PrivKey::LENGTH;
-    let pub_key_length = <KP as KeypairTraits>::PubKey::LENGTH;
-    if bytes.len() != priv_length + pub_key_length {
-        return Err(SuiError::KeyConversionError(format!(
-            "Invalid input byte length, expected {}: {}",
-            priv_length,
-            bytes.len()
-        )));
-    }
-    let sk = <KP as KeypairTraits>::PrivKey::from_bytes(
-        bytes
-            .get(..priv_length)
-            .ok_or(SuiError::InvalidPrivateKey)?,
-    )
-    .map_err(|_| SuiError::InvalidPrivateKey)?;
-    let kp: KP = sk.into();
-    Ok((kp.public().into(), kp))
 }
 
 //
@@ -798,19 +773,6 @@ where
             || anyhow!("Failed to deserialize to {name}."),
         )?)?)
     }
-}
-
-fn hash<S: Signable<H>, H: HashFunction<DIGEST_SIZE>, const DIGEST_SIZE: usize>(
-    signable: &S,
-) -> [u8; DIGEST_SIZE] {
-    let mut digest = H::default();
-    signable.write(&mut digest);
-    let hash = digest.finalize();
-    hash.into()
-}
-
-pub fn default_hash<S: Signable<DefaultHash>>(signable: &S) -> [u8; 32] {
-    hash::<S, DefaultHash, 32>(signable)
 }
 
 #[derive(Deserialize, Serialize, Debug, EnumString, strum_macros::Display)]

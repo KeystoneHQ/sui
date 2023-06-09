@@ -7,8 +7,8 @@ use crate::{crypto::Signature, multisig::MultiSig};
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 pub use enum_dispatch::enum_dispatch;
+use fastcrypto::error::FastCryptoError;
 use fastcrypto::{
-    error::FastCryptoError,
     traits::{EncodeDecodeBase64, ToFromBytes},
 };
 use core::hash::Hash;

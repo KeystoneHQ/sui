@@ -32,6 +32,7 @@ derivative = "2.2.0"
 base64ct = { version = "1.6.0", default-features = false, features = ["alloc"] }
 hex = { version = "0.4.3", default-features = false, features = ["alloc"] }
 bs58 = { version = "0.4.0", default-features = false, features = ["alloc"] }
+signature = { version = "2.0", default-features = false, features = ["alloc"] }
 
 bcs.workspace = true
 move-binary-format.workspace = true

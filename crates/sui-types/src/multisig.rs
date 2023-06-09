@@ -6,11 +6,11 @@ use crate::{
     sui_serde::SuiBitmap,
 };
 pub use enum_dispatch::enum_dispatch;
-use fastcrypto::{
+use crate::fastcrypto::{
     encoding::{Base64, Encoding},
-    error::FastCryptoError,
-    traits::{ToFromBytes},
 };
+use fastcrypto::error::FastCryptoError;
+use fastcrypto::traits::ToFromBytes;
 use once_cell::sync::OnceCell;
 use roaring::RoaringBitmap;
 use serde::{Deserialize, Serialize};
