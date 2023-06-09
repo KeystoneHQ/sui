@@ -21,7 +21,7 @@ use crate::governance::StakedSui;
 use crate::governance::STAKED_SUI_STRUCT_NAME;
 use crate::governance::STAKING_POOL_MODULE_NAME;
 use crate::multisig::MultiSigPublicKey;
-use crate::object::{Object, Owner};
+use crate::object::Object;
 use crate::parse_sui_struct_tag;
 use crate::signature::GenericSignature;
 use crate::sui_serde::Readable;

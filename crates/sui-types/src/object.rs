@@ -24,7 +24,6 @@ use crate::coin::Coin;
 use crate::error::{ExecutionError, ExecutionErrorKind, UserInputError, UserInputResult};
 use crate::error::{SuiError, SuiResult};
 use crate::move_package::MovePackage;
-use crate::type_resolver::LayoutResolver;
 use crate::{
     base_types::{
         ObjectID, ObjectRef, SequenceNumber, SuiAddress, TransactionDigest,
@@ -304,24 +303,6 @@ impl MoveObject {
         self.contents.len() + serialized_type_tag_size + 1 + 8
     }
 
-    /// Get the total amount of SUI embedded in `self`. Intended for testing purposes
-    pub fn get_total_sui(
-        &self,
-        layout_resolver: &mut impl LayoutResolver,
-    ) -> Result<u64, SuiError> {
-        if self.type_.is_gas_coin() {
-            // Fast path without deserialization.
-            return Ok(self.get_coin_value_unsafe());
-        }
-        // If this is a coin but not a SUI coin, the SUI balance must be 0.
-        if self.type_.is_coin() {
-            return Ok(0);
-        }
-        let layout = layout_resolver.get_layout(self, ObjectFormatOptions::with_types())?;
-        let move_struct = self.to_move_struct(&layout)?;
-        Ok(Self::get_total_sui_in_struct(&move_struct, 0))
-    }
-
     /// Get all SUI in `s`, either directly or in its (transitive) fields. Intended for testing purposes
     fn get_total_sui_in_struct(s: &MoveStruct, acc: u64) -> u64 {
         match s {
@@ -551,25 +532,6 @@ impl Object {
         self.is_package() && is_system_package(self.id())
     }
 
-    /// Create a system package which is not subject to size limits. Panics if the object ID is not
-    /// a known system package.
-    pub fn new_system_package(
-        modules: &[CompiledModule],
-        version: SequenceNumber,
-        dependencies: Vec<ObjectID>,
-        previous_transaction: TransactionDigest,
-    ) -> Self {
-        let ret = Self::new_package_from_data(
-            Data::Package(MovePackage::new_system(version, modules, dependencies)),
-            previous_transaction,
-        );
-
-        #[cfg(not(msim))]
-        assert!(ret.is_system_package());
-
-        ret
-    }
-
     pub fn new_package_from_data(data: Data, previous_transaction: TransactionDigest) -> Self {
         Object {
             data,
@@ -735,21 +697,6 @@ impl Object {
         // Index access safe due to checks above.
         let type_tag = move_struct.type_params[0].clone();
         Ok(type_tag)
-    }
-}
-
-// Testing-related APIs.
-impl Object {
-    /// Get the total amount of SUI embedded in `self`, including both Move objects and the storage rebate
-    pub fn get_total_sui(
-        &self,
-        layout_resolver: &mut impl LayoutResolver,
-    ) -> Result<u64, SuiError> {
-        Ok(self.storage_rebate
-            + match &self.data {
-                Data::Move(m) => m.get_total_sui(layout_resolver)?,
-                Data::Package(_) => 0,
-            })
     }
 }
 
