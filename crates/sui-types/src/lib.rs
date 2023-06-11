@@ -20,7 +20,6 @@ pub mod balance;
 pub mod base_types;
 pub mod coin;
 pub mod committee;
-pub mod crypto;
 pub mod digests;
 pub mod dynamic_field;
 pub mod effects;
@@ -31,10 +30,8 @@ pub mod gas_coin;
 pub mod governance;
 pub mod id;
 pub mod move_package;
-pub mod multisig;
 pub mod object;
 pub mod programmable_transaction_builder;
-pub mod signature;
 pub mod sui_protocol_config;
 pub mod sui_serde;
 

@@ -7,9 +7,6 @@ use crate::coin::CoinMetadata;
 use crate::coin::COIN_MODULE_NAME;
 use crate::coin::COIN_STRUCT_NAME;
 pub use crate::committee::EpochId;
-use crate::crypto::{
-    AuthorityPublicKeyBytes, DefaultHash, PublicKey, SignatureScheme, SuiPublicKey, SuiSignature,
-};
 pub use crate::digests::{ObjectDigest, TransactionDigest, TransactionEffectsDigest};
 use crate::dynamic_field::DynamicFieldInfo;
 use crate::dynamic_field::DynamicFieldType;
@@ -20,10 +17,8 @@ use crate::gas_coin::GAS;
 use crate::governance::StakedSui;
 use crate::governance::STAKED_SUI_STRUCT_NAME;
 use crate::governance::STAKING_POOL_MODULE_NAME;
-use crate::multisig::MultiSigPublicKey;
 use crate::object::Object;
 use crate::parse_sui_struct_tag;
-use crate::signature::GenericSignature;
 use crate::sui_serde::Readable;
 use crate::sui_serde::{to_sui_struct_tag_string, HexAccountAddress};
 use crate::MOVE_STDLIB_ADDRESS;
@@ -40,7 +35,6 @@ use alloc::vec::Vec;
 use anyhow::anyhow;
 use crate::fastcrypto::encoding::decode_bytes_hex;
 use crate::fastcrypto::encoding::{Encoding, Hex};
-use fastcrypto::hash::HashFunction;
 use move_core_types::account_address::AccountAddress;
 use move_core_types::ident_str;
 use move_core_types::identifier::IdentStr;
@@ -97,7 +91,7 @@ pub type VersionNumber = SequenceNumber;
 #[derive(Eq, PartialEq, Ord, PartialOrd, Clone, Hash, Default, Debug, Serialize, Deserialize)]
 pub struct UserData(pub Option<[u8; 32]>);
 
-pub type AuthorityName = AuthorityPublicKeyBytes;
+pub type AuthorityName = [u8; 32];
 
 #[serde_as]
 #[derive(Eq, PartialEq, Clone, Copy, PartialOrd, Ord, Hash, Serialize, Deserialize)]
@@ -479,80 +473,6 @@ impl FromStr for SuiAddress {
     type Err = anyhow::Error;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         decode_bytes_hex(s).map_err(|e| anyhow!(e))
-    }
-}
-
-impl<T: SuiPublicKey> From<&T> for SuiAddress {
-    fn from(pk: &T) -> Self {
-        let mut hasher = DefaultHash::default();
-        hasher.update([T::SIGNATURE_SCHEME.flag()]);
-        hasher.update(pk);
-        let g_arr = hasher.finalize();
-        SuiAddress(g_arr.digest)
-    }
-}
-
-impl From<&PublicKey> for SuiAddress {
-    fn from(pk: &PublicKey) -> Self {
-        let mut hasher = DefaultHash::default();
-        hasher.update([pk.flag()]);
-        hasher.update(pk);
-        let g_arr = hasher.finalize();
-        SuiAddress(g_arr.digest)
-    }
-}
-
-impl From<&MultiSigPublicKey> for SuiAddress {
-    /// Derive a SuiAddress from [struct MultiSigPublicKey]. A MultiSig address
-    /// is defined as the 32-byte Blake2b hash of serializing the flag, the
-    /// threshold, concatenation of all n flag, public keys and
-    /// its weight. `flag_MultiSig || threshold || flag_1 || pk_1 || weight_1
-    /// || ... || flag_n || pk_n || weight_n`.
-    fn from(multisig_pk: &MultiSigPublicKey) -> Self {
-        let mut hasher = DefaultHash::default();
-        hasher.update([SignatureScheme::MultiSig.flag()]);
-        hasher.update(multisig_pk.threshold().to_le_bytes());
-        multisig_pk.pubkeys().iter().for_each(|(pk, w)| {
-            hasher.update([pk.flag()]);
-            hasher.update(pk.as_ref());
-            hasher.update(w.to_le_bytes());
-        });
-        SuiAddress(hasher.finalize().digest)
-    }
-}
-
-/// Sui address for [struct ZkLoginAuthenticator] is defined as the black2b hash of
-/// [zklogin_flag || bcs bytes of AddressParams || address seed in bytes] where
-/// AddressParams contains iss and key_claim_name.
-// impl From<&ZkLoginAuthenticator> for SuiAddress {
-//     fn from(authenticator: &ZkLoginAuthenticator) -> Self {
-//         let mut hasher = DefaultHash::default();
-//         hasher.update([SignatureScheme::ZkLoginAuthenticator.flag()]);
-//         // unwrap is safe here
-//         hasher.update(bcs::to_bytes(&authenticator.get_address_params()).unwrap());
-//         hasher.update(big_int_str_to_bytes(authenticator.get_address_seed()));
-//         SuiAddress(hasher.finalize().digest)
-//     }
-// }
-
-impl TryFrom<&GenericSignature> for SuiAddress {
-    type Error = SuiError;
-    /// Derive a SuiAddress from a serialized signature in Sui [GenericSignature].
-    fn try_from(sig: &GenericSignature) -> SuiResult<Self> {
-        Ok(match sig {
-            GenericSignature::Signature(sig) => {
-                let scheme = sig.scheme();
-                let pub_key_bytes = sig.public_key_bytes();
-                let pub_key = PublicKey::try_from_bytes(scheme, pub_key_bytes).map_err(|_| {
-                    SuiError::InvalidSignature {
-                        error: "Cannot parse pubkey".to_string(),
-                    }
-                })?;
-                SuiAddress::from(&pub_key)
-            }
-            GenericSignature::MultiSig(ms) => ms.get_pk().into(),
-            // GenericSignature::ZkLoginAuthenticator(zklogin) => zklogin.into(),
-        })
     }
 }
 

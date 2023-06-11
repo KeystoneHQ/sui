@@ -13,22 +13,17 @@ anyhow = { version = "1.0.64", default-features = false }
 core2 = { version = "0.3", default_features = false, features = ["alloc"] }
 hashbrown = "0.14.0"
 byteorder = "1.4.3"
-itertools = "0.10.5"
 once_cell = { version = "1.16", default-features = false, features = ["alloc"] }
 serde = { version = "1.0", default-features = false, features = ["alloc", "derive", "rc"] }
-serde-name = "0.2.1"
 thiserror = { version = "1.0", package = "thiserror-core", default-features = false }
 serde_json = "1.0.88"
 serde_with = "2.1.0"
 static_assertions = "1.1.0"
 tonic = "0.8"
-strum = "^0.24"
 strum_macros = "^0.24"
 roaring = "0.10.1"
-enum_dispatch = "^0.3"
 eyre = "0.6.8"
 indexmap = "1.9.2"
-derivative = "2.2.0"
 base64ct = { version = "1.6.0", default-features = false, features = ["alloc"] }
 hex = { version = "0.4.3", default-features = false, features = ["alloc"] }
 bs58 = { version = "0.4.0", default-features = false, features = ["alloc"] }
@@ -40,12 +35,9 @@ bcs.workspace = true
 move-binary-format.workspace = true
 move-command-line-common.workspace = true
 move-core-types.workspace = true
-move-vm-types.workspace = true
 
 # no-std
 sui-macros = { path = "../sui-macros" }
-
-fastcrypto = { workspace = true, features = ["experimental"] }
 
 # workspace-hack = { version = "0.1", path = "../workspace-hack" }
 derive_more = "0.99.17"

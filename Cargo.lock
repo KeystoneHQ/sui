@@ -121,6 +121,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "allocator-api2"
+version = "0.2.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c4f263788a35611fba42eb41ff811c5d0360c58b97402570312a350736e2542e"
+
+[[package]]
 name = "android_system_properties"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1128,9 +1134,9 @@ dependencies = [
 
 [[package]]
 name = "base64ct"
-version = "1.5.3"
+version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b645a089122eccb6111b4f81cbc1a49f5900ac4666bb93ac027feaecf15607bf"
+checksum = "8c3c1a368f70d6cf7302d78f8f7093da241fb8e8807c05cc9e51a125895a6d5b"
 
 [[package]]
 name = "bcs"
@@ -1140,6 +1146,16 @@ checksum = "8b06b4c1f053002b70e7084ac944c77d58d5d92b2110dbc5e852735e00ad3ccc"
 dependencies = [
  "serde 1.0.152",
  "thiserror",
+]
+
+[[package]]
+name = "bcs"
+version = "0.1.4"
+source = "git+https://github.com/KeystoneHQ/bcs.git?tag=0.1.0#1ea6f39efe1cfdc38fe2eeb4acb9a92a9aed1a2d"
+dependencies = [
+ "core2 0.3.3",
+ "serde 1.0.152",
+ "thiserror-core",
 ]
 
 [[package]]
@@ -1985,6 +2001,15 @@ name = "core-foundation-sys"
 version = "0.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5827cebf4670468b8772dd191856768aedcb1b0278a04f989f7766351917b9dc"
+
+[[package]]
+name = "core2"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "239fa3ae9b63c2dc74bd3fa852d4792b8b305ae64eeede946265b6af62f1fff3"
+dependencies = [
+ "memchr",
+]
 
 [[package]]
 name = "core2"
@@ -3044,8 +3069,6 @@ dependencies = [
 name = "fastcrypto"
 version = "0.1.5"
 dependencies = [
- "aes",
- "aes-gcm",
  "ark-ec",
  "ark-ff",
  "ark-secp256r1",
@@ -3055,11 +3078,7 @@ dependencies = [
  "bincode",
  "blake2",
  "blake3",
- "blst",
  "bs58",
- "bulletproofs",
- "cbc",
- "ctr",
  "curve25519-dalek-ng",
  "derive_more",
  "digest 0.10.6",
@@ -3069,27 +3088,22 @@ dependencies = [
  "eyre",
  "fastcrypto-derive 0.1.3",
  "generic-array",
+ "hashbrown 0.14.0",
  "hex",
- "hkdf",
  "lazy_static 1.4.0",
- "merlin",
  "once_cell",
  "p256",
  "rand 0.8.5",
  "readonly",
  "rfc6979 0.4.0",
- "rsa",
  "schemars",
  "secp256k1",
  "serde 1.0.152",
- "serde_bytes",
  "serde_with",
  "sha2 0.10.6",
  "sha3 0.10.6",
  "signature 2.0.0",
- "static_assertions",
  "thiserror",
- "tokio",
  "typenum",
  "zeroize",
 ]
@@ -3784,6 +3798,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "43a3c133739dddd0d2990f9a4bdf8eb4b21ef50e4851ca85ab661199821d510e"
 dependencies = [
  "ahash 0.8.2",
+]
+
+[[package]]
+name = "hashbrown"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2c6201b9ff9fd90a5a3bac2e56a830d0caa509576f0e503818ee82c181b3437a"
+dependencies = [
+ "ahash 0.8.2",
+ "allocator-api2",
 ]
 
 [[package]]
@@ -4926,7 +4950,7 @@ name = "move-abigen"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "heck 0.3.3",
  "log",
  "move-binary-format",
@@ -4958,7 +4982,7 @@ name = "move-bytecode-source-map"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "move-binary-format",
  "move-command-line-common",
  "move-core-types",
@@ -5012,7 +5036,7 @@ name = "move-cli"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 3.2.23",
  "codespan-reporting",
  "colored",
@@ -5073,7 +5097,7 @@ name = "move-compiler"
 version = "0.0.1"
 dependencies = [
  "anyhow",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 3.2.23",
  "codespan-reporting",
  "difference",
@@ -5102,7 +5126,7 @@ version = "0.0.4"
 dependencies = [
  "anyhow",
  "arbitrary",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "ethnum",
  "hex",
  "num",
@@ -5122,7 +5146,7 @@ name = "move-coverage"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 3.2.23",
  "codespan",
  "colored",
@@ -5175,7 +5199,7 @@ name = "move-errmapgen"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "log",
  "move-command-line-common",
  "move-core-types",
@@ -5188,7 +5212,7 @@ name = "move-ir-compiler"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 3.2.23",
  "move-binary-format",
  "move-bytecode-source-map",
@@ -5274,7 +5298,7 @@ name = "move-package"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 3.2.23",
  "colored",
  "dirs-next",
@@ -5382,7 +5406,7 @@ name = "move-resource-viewer"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "hex",
  "move-binary-format",
  "move-bytecode-utils",
@@ -5468,7 +5492,7 @@ name = "move-table-extension"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "better_any",
  "move-binary-format",
  "move-core-types",
@@ -5582,7 +5606,7 @@ dependencies = [
 name = "move-vm-types"
 version = "0.1.0"
 dependencies = [
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "move-binary-format",
  "move-core-types",
  "once_cell",
@@ -5666,7 +5690,7 @@ version = "0.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "835d6ff01d610179fbce3de1694d007e500bf33a7f29689838941d6bf783ae40"
 dependencies = [
- "core2",
+ "core2 0.4.0",
  "multihash-derive",
  "unsigned-varint",
 ]
@@ -5725,7 +5749,7 @@ name = "mysten-network"
 version = "0.2.0"
 dependencies = [
  "anemo",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "bytes",
  "eyre",
  "futures",
@@ -5749,7 +5773,7 @@ version = "0.11.0"
 dependencies = [
  "cfg-if",
  "ed25519-consensus",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "hashbrown 0.12.3",
  "impl-trait-for-tuples",
  "indexmap",
@@ -5795,7 +5819,7 @@ dependencies = [
 name = "narwhal-config"
 version = "0.1.0"
 dependencies = [
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "insta",
  "match_opt",
  "mysten-network",
@@ -5817,11 +5841,11 @@ name = "narwhal-consensus"
 version = "0.1.0"
 dependencies = [
  "arc-swap",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "bincode",
  "cfg-if",
  "criterion",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "futures",
  "indexmap",
  "match_opt",
@@ -5848,10 +5872,10 @@ dependencies = [
 name = "narwhal-crypto"
 version = "0.1.0"
 dependencies = [
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "bincode",
  "criterion",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "hex-literal",
  "proptest",
  "proptest-derive",
@@ -5869,7 +5893,7 @@ dependencies = [
  "arc-swap",
  "dashmap",
  "either",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "itertools",
  "narwhal-crypto",
  "once_cell",
@@ -5901,10 +5925,10 @@ dependencies = [
  "anemo",
  "anyhow",
  "async-trait",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "bincode",
  "bytes",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "futures",
  "indexmap",
  "itertools",
@@ -5976,7 +6000,7 @@ dependencies = [
  "cfg-if",
  "clap 2.34.0",
  "eyre",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "futures",
  "mysten-metrics",
  "mysten-network",
@@ -6021,11 +6045,11 @@ dependencies = [
  "async-trait",
  "backoff",
  "base64 0.13.1",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "bincode",
  "bytes",
  "dashmap",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "futures",
  "governor",
  "indexmap",
@@ -6069,7 +6093,7 @@ name = "narwhal-storage"
 version = "0.1.0"
 dependencies = [
  "dashmap",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "futures",
  "lru",
  "mysten-common",
@@ -6093,7 +6117,7 @@ name = "narwhal-test-utils"
 version = "0.1.0"
 dependencies = [
  "anemo",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "fdlimit",
  "indexmap",
  "itertools",
@@ -6130,12 +6154,12 @@ dependencies = [
  "anyhow",
  "async-trait",
  "base64 0.13.1",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "bytes",
  "criterion",
  "derive_builder",
  "enum_dispatch",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "futures",
  "indexmap",
  "mockall",
@@ -6182,7 +6206,7 @@ dependencies = [
  "byteorder",
  "bytes",
  "eyre",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "futures",
  "governor",
  "itertools",
@@ -8750,9 +8774,9 @@ dependencies = [
 name = "shared-crypto"
 version = "0.0.0"
 dependencies = [
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "eyre",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "serde 1.0.152",
  "serde_repr",
  "workspace-hack",
@@ -9107,7 +9131,7 @@ dependencies = [
  "anyhow",
  "assert_cmd",
  "async-trait",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "bip32",
  "camino",
  "clap 3.2.23",
@@ -9115,8 +9139,8 @@ dependencies = [
  "const-str",
  "csv",
  "expect-test",
- "fastcrypto 0.1.5",
- "fastcrypto-zkp 0.1.1",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
+ "fastcrypto-zkp 0.1.1 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "fs_extra",
  "git-version",
  "inquire",
@@ -9172,7 +9196,7 @@ name = "sui-adapter-latest"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "leb128",
  "move-binary-format",
  "move-bytecode-utils",
@@ -9209,11 +9233,11 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "backoff",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "byteorder",
  "bytes",
  "ed25519-consensus",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "futures",
  "integer-encoding",
  "move-binary-format",
@@ -9248,11 +9272,11 @@ version = "0.0.0"
 dependencies = [
  "anyhow",
  "async-trait",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 3.2.23",
  "comfy-table",
  "duration-str",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "futures",
  "hdrhistogram",
  "indicatif",
@@ -9302,9 +9326,9 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-trait",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 3.2.23",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "futures",
  "jsonrpsee",
  "move-core-types",
@@ -9342,10 +9366,10 @@ version = "0.0.0"
 dependencies = [
  "anemo",
  "anyhow",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "csv",
  "dirs",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "insta",
  "move-binary-format",
  "move-core-types",
@@ -9374,7 +9398,7 @@ dependencies = [
  "anyhow",
  "arc-swap",
  "async-trait",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "bytes",
  "chrono",
  "clap 3.2.23",
@@ -9384,8 +9408,8 @@ dependencies = [
  "enum_dispatch",
  "expect-test",
  "eyre",
- "fastcrypto 0.1.5",
- "fastcrypto-zkp 0.1.1",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
+ "fastcrypto-zkp 0.1.1 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "fs_extra",
  "futures",
  "itertools",
@@ -9462,7 +9486,7 @@ name = "sui-cost"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "insta",
  "move-cli",
  "move-disassembler",
@@ -9501,10 +9525,10 @@ dependencies = [
  "anyhow",
  "assert_cmd",
  "async-trait",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 3.2.23",
  "expect-test",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "fs_extra",
  "futures",
  "indexmap",
@@ -9597,7 +9621,7 @@ name = "sui-framework"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "move-binary-format",
  "move-core-types",
  "move-package",
@@ -9614,7 +9638,7 @@ name = "sui-framework-snapshot"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "git-version",
  "serde 1.0.152",
  "serde_json",
@@ -9643,11 +9667,11 @@ version = "0.0.0"
 dependencies = [
  "anemo",
  "anyhow",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "camino",
  "csv",
  "dirs",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "insta",
  "move-binary-format",
  "move-core-types",
@@ -9682,7 +9706,7 @@ dependencies = [
  "async-trait",
  "axum",
  "backoff",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "cached",
  "chrono",
  "clap 3.2.23",
@@ -9690,7 +9714,7 @@ dependencies = [
  "diesel",
  "diesel-derive-enum",
  "diesel_migrations",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "futures",
  "jsonrpsee",
  "move-bytecode-utils",
@@ -9727,8 +9751,8 @@ name = "sui-json"
 version = "0.0.0"
 dependencies = [
  "anyhow",
- "bcs",
- "fastcrypto 0.1.5",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "move-binary-format",
  "move-bytecode-utils",
  "move-core-types",
@@ -9750,10 +9774,10 @@ version = "0.0.0"
 dependencies = [
  "anyhow",
  "async-trait",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "cached",
  "eyre",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "futures",
  "hyper",
  "itertools",
@@ -9806,10 +9830,10 @@ name = "sui-json-rpc-types"
 version = "0.0.0"
 dependencies = [
  "anyhow",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "colored",
  "enum_dispatch",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "itertools",
  "move-binary-format",
  "move-bytecode-utils",
@@ -9833,7 +9857,7 @@ version = "0.0.0"
 dependencies = [
  "anyhow",
  "bip32",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "rand 0.8.5",
  "serde 1.0.152",
  "serde_json",
@@ -9866,7 +9890,7 @@ dependencies = [
  "clap 3.2.23",
  "colored",
  "const-str",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "futures",
  "git-version",
  "jemalloc-ctl",
@@ -9907,7 +9931,7 @@ name = "sui-move-build"
 version = "0.0.0"
 dependencies = [
  "anyhow",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "move-binary-format",
  "move-bytecode-utils",
  "move-bytecode-verifier",
@@ -9928,10 +9952,10 @@ dependencies = [
 name = "sui-move-natives-latest"
 version = "0.1.0"
 dependencies = [
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "better_any",
- "fastcrypto 0.1.5",
- "fastcrypto-zkp 0.1.1",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
+ "fastcrypto-zkp 0.1.1 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "linked-hash-map",
  "move-binary-format",
  "move-core-types",
@@ -9954,7 +9978,7 @@ dependencies = [
  "anyhow",
  "dashmap",
  "ed25519-consensus",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "futures",
  "governor",
  "mysten-metrics",
@@ -9987,7 +10011,7 @@ dependencies = [
  "axum",
  "clap 3.2.23",
  "const-str",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "futures",
  "git-version",
  "mysten-common",
@@ -10025,9 +10049,9 @@ name = "sui-open-rpc"
 version = "1.3.0"
 dependencies = [
  "anyhow",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 3.2.23",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "move-core-types",
  "pretty_assertions",
  "rand 0.8.5",
@@ -10104,7 +10128,7 @@ dependencies = [
  "bytes",
  "clap 3.2.23",
  "const-str",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "git-version",
  "http-body",
  "hyper",
@@ -10143,7 +10167,7 @@ dependencies = [
  "anyhow",
  "async-recursion",
  "async-trait",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 4.1.4",
  "colored",
  "futures",
@@ -10190,11 +10214,11 @@ dependencies = [
  "async-trait",
  "axum",
  "axum-extra",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono",
  "clap 3.2.23",
  "eyre",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "futures",
  "hyper",
  "move-bytecode-utils",
@@ -10285,11 +10309,11 @@ dependencies = [
  "anyhow",
  "async-recursion",
  "async-trait",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 3.2.23",
  "colored",
  "dirs",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "futures",
  "futures-core",
  "jsonrpsee",
@@ -10322,7 +10346,7 @@ version = "0.7.0"
 dependencies = [
  "anemo",
  "anemo-tower",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "lru",
  "move-package",
  "msim",
@@ -10344,10 +10368,10 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "backoff",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "byteorder",
  "bytes",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "futures",
  "integer-encoding",
  "num_enum",
@@ -10401,7 +10425,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "backoff",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "byteorder",
  "bytes",
  "criterion",
@@ -10443,7 +10467,7 @@ name = "sui-surfer"
 version = "1.3.0"
 dependencies = [
  "async-trait",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 3.2.23",
  "futures",
  "indexmap",
@@ -10500,11 +10524,11 @@ version = "0.0.0"
 dependencies = [
  "anemo",
  "anyhow",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "camino",
  "csv",
  "dirs",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "insta",
  "move-binary-format",
  "move-core-types",
@@ -10536,7 +10560,7 @@ dependencies = [
 name = "sui-telemetry"
 version = "0.1.0"
 dependencies = [
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "reqwest",
  "serde 1.0.152",
  "sui-core",
@@ -10549,7 +10573,7 @@ dependencies = [
 name = "sui-test-transaction-builder"
 version = "0.1.0"
 dependencies = [
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "move-core-types",
  "shared-crypto",
  "sui-move-build",
@@ -10582,7 +10606,7 @@ dependencies = [
  "axum",
  "axum-server",
  "ed25519",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "pkcs8 0.9.0",
  "rand 0.8.5",
  "rcgen",
@@ -10603,12 +10627,12 @@ dependencies = [
  "anemo",
  "anemo-cli",
  "anyhow",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 4.1.4",
  "colored",
  "comfy-table",
  "eyre",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "futures",
  "hex",
  "itertools",
@@ -10651,7 +10675,7 @@ version = "0.0.0"
 dependencies = [
  "anyhow",
  "async-trait",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures",
  "move-binary-format",
  "move-core-types",
@@ -10667,10 +10691,10 @@ name = "sui-transactional-test-runner"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "bimap",
  "clap 3.2.23",
- "fastcrypto 0.1.5",
+ "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
  "move-binary-format",
  "move-bytecode-utils",
  "move-command-line-common",
@@ -10698,54 +10722,35 @@ name = "sui-types"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bcs",
+ "base64ct",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "bincode",
+ "bs58",
  "byteorder",
+ "core2 0.3.3",
  "criterion",
- "derivative",
  "derive_more",
- "enum_dispatch",
  "eyre",
- "fastcrypto 0.1.5",
- "fastcrypto-zkp 0.1.1",
+ "hashbrown 0.14.0",
+ "hex",
  "indexmap",
- "itertools",
  "move-binary-format",
- "move-bytecode-utils",
  "move-command-line-common",
  "move-core-types",
- "move-disassembler",
- "move-ir-types",
- "move-vm-types",
- "mysten-metrics",
- "mysten-network",
  "once_cell",
- "parking_lot 0.12.1",
  "proptest",
  "proptest-derive",
- "rand 0.8.5",
  "roaring",
- "schemars",
  "serde 1.0.152",
- "serde-name",
  "serde_json",
  "serde_with",
  "serde_yaml",
- "shared-crypto",
- "signature 1.6.4",
+ "signature 2.0.0",
  "static_assertions",
- "strum",
  "strum_macros",
- "sui-cost-tables",
- "sui-enum-compat-util",
  "sui-macros",
- "sui-protocol-config",
- "tap",
- "thiserror",
+ "thiserror-core",
  "tonic",
- "tracing",
- "typed-store",
- "workspace-hack",
 ]
 
 [[package]]
@@ -11047,7 +11052,7 @@ name = "test-utils"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures",
  "jsonrpsee",
  "move-binary-format",
@@ -11103,6 +11108,26 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6a9cd18aa97d5c45c6603caea1da6628790b37f7a34b6ca89522331c5180fed0"
 dependencies = [
  "thiserror-impl",
+]
+
+[[package]]
+name = "thiserror-core"
+version = "1.0.38"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0d97345f6437bb2004cd58819d8a9ef8e36cdd7661c2abc4bbde0a7c40d9f497"
+dependencies = [
+ "thiserror-core-impl",
+]
+
+[[package]]
+name = "thiserror-core-impl"
+version = "1.0.38"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "10ac1c5050e43014d16b2f94d0d2ce79e65ffdd8b38d8048f9c8f6a8a6da62ac"
+dependencies = [
+ "proc-macro2 1.0.58",
+ "quote 1.0.26",
+ "syn 1.0.107",
 ]
 
 [[package]]
@@ -11706,7 +11731,7 @@ name = "typed-store"
 version = "0.4.0"
 dependencies = [
  "async-trait",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "bincode",
  "collectable",
  "eyre",
@@ -12417,6 +12442,7 @@ dependencies = [
  "aliasable",
  "alloc-no-stdlib",
  "alloc-stdlib",
+ "allocator-api2",
  "anemo",
  "anemo-build",
  "anemo-cli",
@@ -12473,7 +12499,8 @@ dependencies = [
  "base64 0.13.1",
  "base64 0.21.0",
  "base64ct",
- "bcs",
+ "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "bcs 0.1.4 (git+https://github.com/KeystoneHQ/bcs.git?tag=0.1.0)",
  "beef",
  "better_any",
  "better_typeid_derive",
@@ -12555,7 +12582,8 @@ dependencies = [
  "convert_case 0.6.0",
  "core-foundation",
  "core-foundation-sys",
- "core2",
+ "core2 0.3.3",
+ "core2 0.4.0",
  "cpp_demangle",
  "cpufeatures",
  "crc32fast",
@@ -12646,9 +12674,9 @@ dependencies = [
  "expect-test",
  "eyre",
  "fail",
- "fastcrypto 0.1.5 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
- "fastcrypto-derive 0.1.3 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
- "fastcrypto-zkp 0.1.1 (git+https://github.com/MystenLabs/fastcrypto?rev=6d4da5715a15a47ff215c230f0edc48c2f34e065)",
+ "fastcrypto 0.1.5",
+ "fastcrypto-derive 0.1.3",
+ "fastcrypto-zkp 0.1.1",
  "fastrand",
  "fd-lock",
  "fdlimit",
@@ -12701,6 +12729,7 @@ dependencies = [
  "half",
  "hashbrown 0.12.3",
  "hashbrown 0.13.2",
+ "hashbrown 0.14.0",
  "hdrhistogram",
  "headers",
  "headers-core",
@@ -13135,6 +13164,8 @@ dependencies = [
  "textwrap 0.11.0",
  "textwrap 0.16.0",
  "thiserror",
+ "thiserror-core",
+ "thiserror-core-impl",
  "thiserror-impl",
  "thread_local",
  "threadpool",
