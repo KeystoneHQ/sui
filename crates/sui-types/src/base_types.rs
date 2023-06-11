@@ -8,10 +8,7 @@ use crate::coin::COIN_MODULE_NAME;
 use crate::coin::COIN_STRUCT_NAME;
 pub use crate::committee::EpochId;
 pub use crate::digests::{ObjectDigest, TransactionDigest, TransactionEffectsDigest};
-use crate::dynamic_field::DynamicFieldInfo;
-use crate::dynamic_field::DynamicFieldType;
 use crate::error::SuiError;
-use crate::error::SuiResult;
 use crate::gas_coin::GasCoin;
 use crate::gas_coin::GAS;
 use crate::governance::StakedSui;
@@ -29,7 +26,6 @@ use alloc::borrow::ToOwned;
 use alloc::boxed::Box;
 use alloc::format;
 use alloc::string::String;
-use alloc::string::ToString;
 use alloc::vec;
 use alloc::vec::Vec;
 use anyhow::anyhow;
@@ -242,26 +238,6 @@ impl MoveObjectType {
                 false
             }
             MoveObjectType_::Other(s) => CoinMetadata::is_coin_metadata(s),
-        }
-    }
-
-    pub fn is_dynamic_field(&self) -> bool {
-        match &self.0 {
-            MoveObjectType_::GasCoin | MoveObjectType_::StakedSui | MoveObjectType_::Coin(_) => {
-                false
-            }
-            MoveObjectType_::Other(s) => DynamicFieldInfo::is_dynamic_field(s),
-        }
-    }
-
-    pub fn try_extract_field_name(&self, type_: &DynamicFieldType) -> SuiResult<TypeTag> {
-        match &self.0 {
-            MoveObjectType_::GasCoin | MoveObjectType_::StakedSui | MoveObjectType_::Coin(_) => {
-                Err(SuiError::ObjectDeserializationError {
-                    error: "Error extracting dynamic object name from Coin object".to_string(),
-                })
-            }
-            MoveObjectType_::Other(s) => DynamicFieldInfo::try_extract_field_name(s, type_),
         }
     }
 

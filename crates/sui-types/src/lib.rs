@@ -21,7 +21,6 @@ pub mod base_types;
 pub mod coin;
 pub mod committee;
 pub mod digests;
-pub mod dynamic_field;
 pub mod effects;
 pub mod event;
 pub mod execution_status;
