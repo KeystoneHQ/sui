@@ -12,7 +12,6 @@ use serde::Serialize;
 
 use crate::{
     base_types::{ObjectID, ObjectRef, SuiAddress},
-    move_package::PACKAGE_MODULE_NAME,
     transaction::{
         Argument, CallArg, Command, ObjectArg, ProgrammableMoveCall, ProgrammableTransaction,
     },
@@ -186,18 +185,6 @@ impl ProgrammableTransactionBuilder {
         dep_ids: Vec<ObjectID>,
     ) -> Argument {
         self.command(Command::Publish(modules, dep_ids))
-    }
-
-    pub fn publish_immutable(&mut self, modules: Vec<Vec<u8>>, dep_ids: Vec<ObjectID>) {
-        let cap = self.publish_upgradeable(modules, dep_ids);
-        self.commands
-            .push(Command::MoveCall(Box::new(ProgrammableMoveCall {
-                package: SUI_FRAMEWORK_PACKAGE_ID,
-                module: PACKAGE_MODULE_NAME.to_owned(),
-                function: ident_str!("make_immutable").to_owned(),
-                type_arguments: vec![],
-                arguments: vec![cap],
-            })));
     }
 
     pub fn upgrade(

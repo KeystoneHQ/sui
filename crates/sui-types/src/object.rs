@@ -8,7 +8,6 @@ use alloc::string::ToString;
 use alloc::vec::Vec;
 use core::mem::size_of;
 
-use move_binary_format::CompiledModule;
 use move_core_types::language_storage::StructTag;
 use move_core_types::language_storage::TypeTag;
 use move_core_types::value::{MoveStruct, MoveStructLayout};
@@ -286,30 +285,6 @@ impl Data {
         }
     }
 
-    pub fn try_as_package(&self) -> Option<&MovePackage> {
-        use Data::*;
-        match self {
-            Move(_) => None,
-            Package(p) => Some(p),
-        }
-    }
-
-    pub fn try_as_package_mut(&mut self) -> Option<&mut MovePackage> {
-        use Data::*;
-        match self {
-            Move(_) => None,
-            Package(p) => Some(p),
-        }
-    }
-
-    pub fn try_into_package(self) -> Option<MovePackage> {
-        use Data::*;
-        match self {
-            Move(_) => None,
-            Package(p) => Some(p),
-        }
-    }
-
     pub fn type_(&self) -> Option<&MoveObjectType> {
         use Data::*;
         match self {
@@ -465,23 +440,6 @@ impl Object {
             previous_transaction,
             storage_rebate: 0,
         }
-    }
-
-    // Note: this will panic if `modules` is empty
-    pub fn new_package<'p>(
-        modules: &[CompiledModule],
-        previous_transaction: TransactionDigest,
-        max_move_package_size: u64,
-        dependencies: impl IntoIterator<Item = &'p MovePackage>,
-    ) -> Result<Self, ExecutionError> {
-        Ok(Self::new_package_from_data(
-            Data::Package(MovePackage::new_initial(
-                modules,
-                max_move_package_size,
-                dependencies,
-            )?),
-            previous_transaction,
-        ))
     }
 
     pub fn is_immutable(&self) -> bool {
