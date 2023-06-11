@@ -4,10 +4,10 @@
 //! Utility for generating programmable transactions, either by specifying a command or for
 //! migrating legacy transactions
 
-use alloc::{vec, vec::Vec, boxed::Box, borrow::ToOwned};
+use alloc::{vec, vec::Vec, boxed::Box};
 use anyhow::Context;
 use indexmap::IndexMap;
-use move_core_types::{ident_str, identifier::Identifier, language_storage::TypeTag};
+use move_core_types::{identifier::Identifier, language_storage::TypeTag};
 use serde::Serialize;
 
 use crate::{
@@ -15,7 +15,6 @@ use crate::{
     transaction::{
         Argument, CallArg, Command, ObjectArg, ProgrammableMoveCall, ProgrammableTransaction,
     },
-    SUI_FRAMEWORK_PACKAGE_ID,
 };
 
 #[derive(PartialEq, Eq, Hash)]

@@ -6,7 +6,6 @@ use alloc::borrow::ToOwned;
 use alloc::fmt::{Debug, Display, Formatter};
 use alloc::string::ToString;
 use alloc::vec::Vec;
-use core::mem::size_of;
 
 use move_core_types::language_storage::StructTag;
 use move_core_types::language_storage::TypeTag;
@@ -19,7 +18,6 @@ use crate::base_types::{MoveObjectType, ObjectIDParseError};
 use crate::coin::Coin;
 use crate::error::{ExecutionError, ExecutionErrorKind, UserInputError, UserInputResult};
 use crate::error::{SuiError, SuiResult};
-use crate::move_package::MovePackage;
 use crate::{
     base_types::{
         ObjectID, ObjectRef, SequenceNumber, SuiAddress, TransactionDigest,
@@ -264,7 +262,8 @@ pub enum Data {
     /// An object whose governing logic lives in a published Move module
     Move(MoveObject),
     /// Map from each module name to raw serialized Move module bytes
-    Package(MovePackage),
+    // Package(MovePackage),
+    Package(u8),
     // ... Sui "native" types go here
 }
 
@@ -301,12 +300,6 @@ impl Data {
         }
     }
 
-    pub fn id(&self) -> ObjectID {
-        match self {
-            Self::Move(v) => v.id(),
-            Self::Package(m) => m.id(),
-        }
-    }
 }
 
 #[derive(
@@ -428,11 +421,6 @@ impl Object {
         }
     }
 
-    /// Returns true if the object is a system package.
-    pub fn is_system_package(&self) -> bool {
-        self.is_package() && is_system_package(self.id())
-    }
-
     pub fn new_package_from_data(data: Data, previous_transaction: TransactionDigest) -> Self {
         Object {
             data,
@@ -462,33 +450,9 @@ impl Object {
         self.owner.get_owner_address().ok()
     }
 
-    // It's a common pattern to retrieve both the owner and object ID
-    // together, if it's owned by a singler owner.
-    pub fn get_owner_and_id(&self) -> Option<(Owner, ObjectID)> {
-        Some((self.owner, self.id()))
-    }
-
     /// Return true if this object is a Move package, false if it is a Move value
     pub fn is_package(&self) -> bool {
         matches!(&self.data, Data::Package(_))
-    }
-
-    pub fn id(&self) -> ObjectID {
-        use Data::*;
-
-        match &self.data {
-            Move(v) => v.id(),
-            Package(m) => m.id(),
-        }
-    }
-
-    pub fn version(&self) -> SequenceNumber {
-        use Data::*;
-
-        match &self.data {
-            Move(o) => o.version(),
-            Package(p) => p.version(),
-        }
     }
 
     pub fn type_(&self) -> Option<&MoveObjectType> {
@@ -532,18 +496,6 @@ impl Object {
         } else {
             None
         }
-    }
-    /// Approximate size of the object in bytes. This is used for gas metering.
-    /// This will be slgihtly different from the serialized size, but
-    /// we also don't want to serialize the object just to get the size.
-    /// This approximation should be good enough for gas metering.
-    pub fn object_size_for_gas_metering(&self) -> usize {
-        let meta_data_size = size_of::<Owner>() + size_of::<TransactionDigest>() + size_of::<u64>();
-        let data_size = match &self.data {
-            Data::Move(m) => m.object_size_for_gas_metering(),
-            Data::Package(p) => p.object_size_for_gas_metering(),
-        };
-        meta_data_size + data_size
     }
 
     /// Change the owner of `self` to `new_owner`.

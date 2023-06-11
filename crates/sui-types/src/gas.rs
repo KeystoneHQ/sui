@@ -5,7 +5,6 @@
 use crate::sui_serde::BigInt;
 use crate::sui_serde::Readable;
 use crate::{
-    error::{UserInputError, UserInputResult},
     object::Object,
 };
 use serde::{Deserialize, Serialize};
@@ -127,21 +126,6 @@ pub fn refund_gas(gas_object: &mut Object, amount: u64) {
     let gas_coin = gas_object.data.try_as_move_mut().unwrap();
     let balance = gas_coin.get_coin_value_unsafe();
     gas_coin.set_coin_value_unsafe(balance + amount)
-}
-
-pub fn get_gas_balance(gas_object: &Object) -> UserInputResult<u64> {
-    if let Some(move_obj) = gas_object.data.try_as_move() {
-        if !move_obj.type_().is_gas_coin() {
-            return Err(UserInputError::InvalidGasObject {
-                object_id: gas_object.id(),
-            })
-        }
-        Ok(move_obj.get_coin_value_unsafe())
-    } else {
-        Err(UserInputError::InvalidGasObject {
-            object_id: gas_object.id(),
-        })
-    }
 }
 
 }

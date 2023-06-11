@@ -32,15 +32,11 @@ signature = { version = "2.0", default-features = false, features = ["alloc"] }
 # no-std
 bcs.workspace = true
 
-move-binary-format.workspace = true
 move-command-line-common.workspace = true
 move-core-types.workspace = true
 
 # no-std
 sui-macros = { path = "../sui-macros" }
-
-# workspace-hack = { version = "0.1", path = "../workspace-hack" }
-derive_more = "0.99.17"
 
 [dev-dependencies]
 bincode = "1.3.3"

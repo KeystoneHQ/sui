@@ -36,7 +36,6 @@ macro_rules! fp_ensure {
 }
 use crate::digests::TransactionEventsDigest;
 use crate::execution_status::{CommandIndex, ExecutionFailureStatus};
-pub(crate) use fp_ensure;
 
 #[macro_export]
 macro_rules! make_invariant_violation {

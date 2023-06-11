@@ -28,7 +28,6 @@ pub mod gas;
 pub mod gas_coin;
 pub mod governance;
 pub mod id;
-pub mod move_package;
 pub mod object;
 pub mod programmable_transaction_builder;
 pub mod sui_protocol_config;
