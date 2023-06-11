@@ -1,8 +1,7 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-use alloc::vec::Vec;
-use alloc::{fmt, format, vec};
+use alloc::{fmt, format};
 use alloc::fmt::Write;
 use alloc::fmt::{Debug, Display, Formatter};
 use alloc::string::{ToString, String};
@@ -19,7 +18,7 @@ use serde::ser::{Error as SerError, Serializer};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use serde_with::DisplayFromStr;
-use serde_with::{Bytes, DeserializeAs, SerializeAs};
+use serde_with::{DeserializeAs, SerializeAs};
 
 use crate::{
     parse_sui_struct_tag, parse_sui_type_tag, DEEPBOOK_ADDRESS, SUI_CLOCK_ADDRESS,
@@ -33,15 +32,6 @@ where
     D: Deserializer<'de>,
 {
     Error::custom(format!("byte deserialization failed, cause by: {:?}", e))
-}
-
-#[inline]
-fn to_custom_ser_error<S, E>(e: E) -> S::Error
-where
-    E: Debug,
-    S: Serializer,
-{
-    S::Error::custom(format!("byte serialization failed, cause by: {:?}", e))
 }
 
 /// Use with serde_as to control serde for human-readable serialization and deserialization
@@ -121,34 +111,6 @@ impl<'de> DeserializeAs<'de, AccountAddress> for HexAccountAddress {
             AccountAddress::from_hex(&s)
         }
         .map_err(to_custom_error::<'de, D, _>)
-    }
-}
-
-/// Serializes a bitmap according to the roaring bitmap on-disk standard.
-/// <https://github.com/RoaringBitmap/RoaringFormatSpec>
-pub struct SuiBitmap;
-
-impl SerializeAs<roaring::RoaringBitmap> for SuiBitmap {
-    fn serialize_as<S>(source: &roaring::RoaringBitmap, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut bytes = vec![];
-
-        source
-            .serialize_into(&mut bytes)
-            .map_err(to_custom_ser_error::<S, _>)?;
-        Bytes::serialize_as(&bytes, serializer)
-    }
-}
-
-impl<'de> DeserializeAs<'de, roaring::RoaringBitmap> for SuiBitmap {
-    fn deserialize_as<D>(deserializer: D) -> Result<roaring::RoaringBitmap, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let bytes: Vec<u8> = Bytes::deserialize_as(deserializer)?;
-        roaring::RoaringBitmap::deserialize_from(&bytes[..]).map_err(to_custom_error::<'de, D, _>)
     }
 }
 

@@ -10738,17 +10738,13 @@ dependencies = [
  "once_cell",
  "proptest",
  "proptest-derive",
- "roaring",
  "serde 1.0.152",
  "serde_json",
  "serde_with",
  "serde_yaml",
- "signature 2.0.0",
- "static_assertions",
  "strum_macros",
  "sui-macros",
  "thiserror-core",
- "tonic",
 ]
 
 [[package]]

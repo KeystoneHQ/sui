@@ -11,10 +11,9 @@ use crate::{
 };
 
 use serde::{Deserialize, Serialize};
-use alloc::{collections::BTreeMap, fmt::Debug, string::{String, ToString}, vec::Vec, borrow::ToOwned, boxed::Box};
+use alloc::{collections::BTreeMap, fmt::Debug, string::{String, ToString}, vec::Vec, boxed::Box};
 use strum_macros::{AsRefStr, IntoStaticStr};
 use thiserror::Error;
-use tonic::Status;
 
 pub const TRANSACTION_NOT_FOUND_MSG_PREFIX: &str = "Could not find the referenced transaction";
 pub const TRANSACTIONS_NOT_FOUND_MSG_PREFIX: &str = "Could not find the referenced transactions";
@@ -573,27 +572,6 @@ impl From<crate::sui_protocol_config::Error> for SuiError {
 impl From<ExecutionError> for SuiError {
     fn from(error: ExecutionError) -> Self {
         SuiError::ExecutionError(error.to_string())
-    }
-}
-
-impl From<Status> for SuiError {
-    fn from(status: Status) -> Self {
-        let result = bcs::from_bytes::<SuiError>(status.details());
-        if let Ok(sui_error) = result {
-            sui_error
-        } else {
-            Self::RpcError(
-                status.message().to_owned(),
-                status.code().description().to_owned(),
-            )
-        }
-    }
-}
-
-impl From<SuiError> for Status {
-    fn from(error: SuiError) -> Self {
-        let bytes = bcs::to_bytes(&error).unwrap();
-        Status::with_details(tonic::Code::Internal, error.to_string(), bytes.into())
     }
 }
 
