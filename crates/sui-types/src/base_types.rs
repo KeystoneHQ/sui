@@ -14,8 +14,6 @@ use crate::gas_coin::GAS;
 use crate::governance::StakedSui;
 use crate::governance::STAKED_SUI_STRUCT_NAME;
 use crate::governance::STAKING_POOL_MODULE_NAME;
-use crate::object::Object;
-use crate::parse_sui_struct_tag;
 use crate::sui_serde::Readable;
 use crate::sui_serde::{to_sui_struct_tag_string, HexAccountAddress};
 use crate::MOVE_STDLIB_ADDRESS;
@@ -283,68 +281,6 @@ impl From<MoveObjectType> for TypeTag {
     fn from(o: MoveObjectType) -> TypeTag {
         let s: StructTag = o.into();
         TypeTag::Struct(Box::new(s))
-    }
-}
-
-/// Type of a Sui object
-#[derive(Clone, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Debug)]
-pub enum ObjectType {
-    /// Move package containing one or more bytecode modules
-    Package,
-    /// A Move struct of the given type
-    Struct(MoveObjectType),
-}
-
-impl From<&Object> for ObjectType {
-    fn from(o: &Object) -> Self {
-        o.data
-            .type_()
-            .map(|t| ObjectType::Struct(t.clone()))
-            .unwrap_or(ObjectType::Package)
-    }
-}
-
-impl TryFrom<ObjectType> for StructTag {
-    type Error = anyhow::Error;
-
-    fn try_from(o: ObjectType) -> Result<Self, anyhow::Error> {
-        match o {
-            ObjectType::Package => Err(anyhow!("Cannot create StructTag from Package")),
-            ObjectType::Struct(move_object_type) => Ok(move_object_type.into()),
-        }
-    }
-}
-
-impl FromStr for ObjectType {
-    type Err = anyhow::Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.to_lowercase() == PACKAGE {
-            Ok(ObjectType::Package)
-        } else {
-            let tag = parse_sui_struct_tag(s)?;
-            Ok(ObjectType::Struct(MoveObjectType::from(tag)))
-        }
-    }
-}
-
-const PACKAGE: &str = "package";
-impl ObjectType {
-    pub fn is_gas_coin(&self) -> bool {
-        matches!(self, ObjectType::Struct(s) if s.is_gas_coin())
-    }
-
-    pub fn is_coin(&self) -> bool {
-        matches!(self, ObjectType::Struct(s) if s.is_coin())
-    }
-
-    /// Return true if `self` is `0x2::coin::Coin<t>`
-    pub fn is_coin_t(&self, t: &TypeTag) -> bool {
-        matches!(self, ObjectType::Struct(s) if s.is_coin_t(t))
-    }
-
-    pub fn is_package(&self) -> bool {
-        matches!(self, ObjectType::Package)
     }
 }
 
@@ -821,14 +757,5 @@ impl fmt::Display for MoveObjectType {
             "{}",
             to_sui_struct_tag_string(&s).map_err(fmt::Error::custom)?
         )
-    }
-}
-
-impl fmt::Display for ObjectType {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> alloc::fmt::Result {
-        match self {
-            ObjectType::Package => write!(f, "{}", PACKAGE),
-            ObjectType::Struct(t) => write!(f, "{}", t),
-        }
     }
 }

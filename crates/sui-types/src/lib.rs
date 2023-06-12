@@ -6,7 +6,7 @@
 extern crate alloc;
 
 use base_types::{SequenceNumber, SuiAddress};
-use move_core_types::{account_address::AccountAddress, language_storage::StructTag};
+use move_core_types::account_address::AccountAddress;
 pub use move_core_types::{identifier::Identifier, language_storage::TypeTag};
 use object::OBJECT_START_VERSION;
 
@@ -77,26 +77,6 @@ const fn deepbook_addr() -> AccountAddress {
     addr[AccountAddress::LENGTH - 2] = 0xde;
     addr[AccountAddress::LENGTH - 1] = 0xe9;
     AccountAddress::new(addr)
-}
-
-pub fn parse_sui_struct_tag(s: &str) -> anyhow::Result<StructTag> {
-    use move_command_line_common::types::ParsedStructType;
-    ParsedStructType::parse(s)?.into_struct_tag(&resolve_address)
-}
-
-pub fn parse_sui_type_tag(s: &str) -> anyhow::Result<TypeTag> {
-    use move_command_line_common::types::ParsedType;
-    ParsedType::parse(s)?.into_type_tag(&resolve_address)
-}
-
-fn resolve_address(addr: &str) -> Option<AccountAddress> {
-    match addr {
-        "deepbook" => Some(DEEPBOOK_ADDRESS),
-        "std" => Some(MOVE_STDLIB_ADDRESS),
-        "sui" => Some(SUI_FRAMEWORK_ADDRESS),
-        "sui_system" => Some(SUI_SYSTEM_ADDRESS),
-        _ => None,
-    }
 }
 
 pub trait MoveTypeTagTrait {

@@ -14,14 +14,14 @@ use move_core_types::account_address::AccountAddress;
 use move_core_types::language_storage::{StructTag, TypeTag};
 use serde;
 use serde::de::{Deserializer, Error};
-use serde::ser::{Error as SerError, Serializer};
+use serde::ser::Serializer;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use serde_with::DisplayFromStr;
 use serde_with::{DeserializeAs, SerializeAs};
 
 use crate::{
-    parse_sui_struct_tag, parse_sui_type_tag, DEEPBOOK_ADDRESS, SUI_CLOCK_ADDRESS,
+    DEEPBOOK_ADDRESS, SUI_CLOCK_ADDRESS,
     SUI_FRAMEWORK_ADDRESS, SUI_SYSTEM_ADDRESS, SUI_SYSTEM_STATE_ADDRESS,
 };
 
@@ -114,18 +114,6 @@ impl<'de> DeserializeAs<'de, AccountAddress> for HexAccountAddress {
     }
 }
 
-pub struct SuiStructTag;
-
-impl SerializeAs<StructTag> for SuiStructTag {
-    fn serialize_as<S>(value: &StructTag, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let f = to_sui_struct_tag_string(value).map_err(S::Error::custom)?;
-        f.serialize(serializer)
-    }
-}
-
 const SUI_ADDRESSES: [AccountAddress; 7] = [
     AccountAddress::ZERO,
     AccountAddress::ONE,
@@ -162,38 +150,6 @@ fn to_sui_type_tag_string(value: &TypeTag) -> Result<String, fmt::Error> {
         TypeTag::Vector(t) => Ok(format!("vector<{}>", to_sui_type_tag_string(t)?)),
         TypeTag::Struct(s) => to_sui_struct_tag_string(s),
         _ => Ok(value.to_string()),
-    }
-}
-
-impl<'de> DeserializeAs<'de, StructTag> for SuiStructTag {
-    fn deserialize_as<D>(deserializer: D) -> Result<StructTag, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let s = String::deserialize(deserializer)?;
-        parse_sui_struct_tag(&s).map_err(D::Error::custom)
-    }
-}
-
-pub struct SuiTypeTag;
-
-impl SerializeAs<TypeTag> for SuiTypeTag {
-    fn serialize_as<S>(value: &TypeTag, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let s = to_sui_type_tag_string(value).map_err(S::Error::custom)?;
-        s.serialize(serializer)
-    }
-}
-
-impl<'de> DeserializeAs<'de, TypeTag> for SuiTypeTag {
-    fn deserialize_as<D>(deserializer: D) -> Result<TypeTag, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let s = String::deserialize(deserializer)?;
-        parse_sui_type_tag(&s).map_err(D::Error::custom)
     }
 }
 
