@@ -12,7 +12,7 @@ use once_cell::sync::Lazy;
 #[cfg(any(test, feature = "fuzzing"))]
 use proptest_derive::Arbitrary;
 use serde::{Deserialize, Serialize};
-use std::{
+use alloc::{
     fmt::{Display, Formatter},
     str::FromStr,
 };
@@ -265,7 +265,7 @@ impl ModuleId {
 }
 
 impl Display for ModuleId {
-    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter) -> core::fmt::Result {
         write!(f, "{}::{}", self.address, self.name)
     }
 }
@@ -277,7 +277,7 @@ impl ModuleId {
 }
 
 impl Display for StructTag {
-    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter) -> core::fmt::Result {
         write!(
             f,
             "0x{}::{}::{}",
@@ -298,7 +298,7 @@ impl Display for StructTag {
 }
 
 impl Display for TypeTag {
-    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter) -> core::fmt::Result {
         match self {
             TypeTag::Struct(s) => write!(f, "{}", s),
             TypeTag::Vector(ty) => write!(f, "vector<{}>", ty),

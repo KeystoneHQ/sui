@@ -3,8 +3,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 //! Core types for Move.
+// #![no_std]
+#![feature(error_in_core)]
 
 extern crate alloc;
+extern crate core;
 
 pub mod abi;
 pub mod account_address;

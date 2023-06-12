@@ -12,7 +12,7 @@ use rand::{
     },
     Rng,
 };
-use std::{
+use core::{
     fmt,
     mem::size_of,
     ops::{
@@ -59,7 +59,7 @@ pub struct U256CastError {
 }
 
 impl U256CastError {
-    pub fn new<T: std::convert::Into<U256>>(val: T, kind: U256CastErrorKind) -> Self {
+    pub fn new<T: core::convert::Into<U256>>(val: T, kind: U256CastErrorKind) -> Self {
         Self {
             kind,
             val: val.into(),
@@ -67,7 +67,7 @@ impl U256CastError {
     }
 }
 
-impl std::error::Error for U256CastError {}
+impl core::error::Error for U256CastError {}
 
 impl fmt::Display for U256CastError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -83,8 +83,8 @@ impl fmt::Display for U256CastError {
     }
 }
 
-impl std::error::Error for U256FromStrError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+impl core::error::Error for U256FromStrError {
+    fn source(&self) -> Option<&(dyn core::error::Error + 'static)> {
         self.0.source()
     }
 }
@@ -99,7 +99,7 @@ impl fmt::Display for U256FromStrError {
 pub struct U256(PrimitiveU256);
 
 impl fmt::Display for U256 {
-    fn fmt(&self, f: &mut fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> alloc::fmt::Result {
         self.0.fmt(f)
     }
 }
@@ -116,7 +116,7 @@ impl fmt::LowerHex for U256 {
     }
 }
 
-impl std::str::FromStr for U256 {
+impl alloc::str::FromStr for U256 {
     type Err = U256FromStrError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -125,7 +125,7 @@ impl std::str::FromStr for U256 {
 }
 
 impl<'de> Deserialize<'de> for U256 {
-    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
@@ -136,7 +136,7 @@ impl<'de> Deserialize<'de> for U256 {
 }
 
 impl Serialize for U256 {
-    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    fn serialize<S>(&self, serializer: S) -> core::result::Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
@@ -385,7 +385,7 @@ impl U256 {
 
     /// Downcast to a an unsigned value of type T
     /// T must be at most u128
-    pub fn down_cast_lossy<T: std::convert::TryFrom<u128>>(self) -> T {
+    pub fn down_cast_lossy<T: core::convert::TryFrom<u128>>(self) -> T {
         // Size of this type
         let type_size = size_of::<T>();
         // Maximum value for this type

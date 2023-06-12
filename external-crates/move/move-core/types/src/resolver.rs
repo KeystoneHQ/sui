@@ -7,8 +7,8 @@ use crate::{
     identifier::IdentStr,
     language_storage::{ModuleId, StructTag},
 };
-use std::fmt::Debug;
-use std::sync::Arc;
+use core::fmt::Debug;
+use alloc::sync::Arc;
 
 /// Traits for resolving Move modules and resources from persistent storage
 

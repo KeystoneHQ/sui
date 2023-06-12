@@ -14,7 +14,7 @@ use serde::{
     ser::{SerializeMap, SerializeSeq, SerializeStruct, SerializeTuple},
     Deserialize, Serialize,
 };
-use std::{
+use core::{
     convert::TryInto,
     fmt::{self, Debug},
 };

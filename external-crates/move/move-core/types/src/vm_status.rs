@@ -11,7 +11,7 @@ use proptest::prelude::*;
 #[cfg(any(test, feature = "fuzzing"))]
 use proptest_derive::Arbitrary;
 use serde::{de, ser, Deserialize, Serialize};
-use std::{convert::TryFrom, fmt};
+use core::{convert::TryFrom, fmt};
 
 /// The minimum status code for validation statuses
 pub static VALIDATION_STATUS_MIN_CODE: u64 = 0;
@@ -313,7 +313,7 @@ impl fmt::Debug for AbortLocation {
     }
 }
 
-impl std::error::Error for VMStatus {}
+impl core::error::Error for VMStatus {}
 
 pub mod known_locations {
     use crate::{
@@ -386,7 +386,7 @@ macro_rules! derive_status_try_from_repr {
             ),*
         }
 
-        impl std::convert::TryFrom<$repr_ty> for $enum_name {
+        impl core::convert::TryFrom<$repr_ty> for $enum_name {
             type Error = &'static str;
             fn try_from(value: $repr_ty) -> Result<Self, Self::Error> {
                 match value {
@@ -742,7 +742,7 @@ impl StatusCode {
 
 // TODO(#1307)
 impl ser::Serialize for StatusCode {
-    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    fn serialize<S>(&self, serializer: S) -> core::result::Result<S::Ok, S::Error>
     where
         S: ser::Serializer,
     {
@@ -751,7 +751,7 @@ impl ser::Serialize for StatusCode {
 }
 
 impl<'de> de::Deserialize<'de> for StatusCode {
-    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
     where
         D: de::Deserializer<'de>,
     {
@@ -763,7 +763,7 @@ impl<'de> de::Deserialize<'de> for StatusCode {
                 formatter.write_str("StatusCode as u64")
             }
 
-            fn visit_u64<E>(self, v: u64) -> std::result::Result<StatusCode, E>
+            fn visit_u64<E>(self, v: u64) -> core::result::Result<StatusCode, E>
             where
                 E: de::Error,
             {

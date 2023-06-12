@@ -5,7 +5,7 @@
 use crate::{account_address::AccountAddress, u256, value::MoveValue};
 use anyhow::{anyhow, Error, Result};
 use serde::{Deserialize, Serialize};
-use std::{convert::TryFrom, fmt};
+use core::{convert::TryFrom, fmt};
 
 #[derive(Clone, Hash, Eq, PartialEq, Serialize, Deserialize)]
 pub enum TransactionArgument {
@@ -120,7 +120,7 @@ impl VecBytes {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::{From, TryInto};
+    use core::convert::{From, TryInto};
 
     use crate::{
         account_address::AccountAddress, transaction_argument::TransactionArgument, u256::U256,

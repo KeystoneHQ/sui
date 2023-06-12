@@ -4,7 +4,8 @@
 
 use hex::FromHex;
 use serde::{de::Error as _, Deserialize, Deserializer, Serialize, Serializer};
-use std::{convert::TryFrom, fmt, str::FromStr};
+use core::{convert::TryFrom};
+use alloc::{fmt, str::FromStr};
 
 use crate::gas_algebra::AbstractMemorySize;
 
@@ -128,7 +129,7 @@ impl AsRef<[u8]> for AccountAddress {
     }
 }
 
-impl std::ops::Deref for AccountAddress {
+impl core::ops::Deref for AccountAddress {
     type Target = [u8; Self::LENGTH];
 
     fn deref(&self) -> &Self::Target {
@@ -137,7 +138,7 @@ impl std::ops::Deref for AccountAddress {
 }
 
 impl fmt::Display for AccountAddress {
-    fn fmt(&self, f: &mut fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> alloc::fmt::Result {
         write!(f, "{:x}", self)
     }
 }
@@ -252,7 +253,7 @@ impl FromStr for AccountAddress {
 }
 
 impl<'de> Deserialize<'de> for AccountAddress {
-    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
@@ -274,7 +275,7 @@ impl<'de> Deserialize<'de> for AccountAddress {
 }
 
 impl Serialize for AccountAddress {
-    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    fn serialize<S>(&self, serializer: S) -> core::result::Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
@@ -291,7 +292,7 @@ impl Serialize for AccountAddress {
 pub struct AccountAddressParseError;
 
 impl fmt::Display for AccountAddressParseError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> alloc::fmt::Result {
         write!(
             f,
             "Unable to parse AccountAddress (must be hex string of length {})",
@@ -300,4 +301,4 @@ impl fmt::Display for AccountAddressParseError {
     }
 }
 
-impl std::error::Error for AccountAddressParseError {}
+impl core::error::Error for AccountAddressParseError {}

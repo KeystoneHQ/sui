@@ -8,7 +8,7 @@ use crate::{
     language_storage::{ModuleId, StructTag, TypeTag},
 };
 use anyhow::{bail, Result};
-use std::collections::btree_map::{self, BTreeMap};
+use alloc::collections::btree_map::{self, BTreeMap};
 
 /// A storage operation.
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd)]

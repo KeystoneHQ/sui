@@ -60,7 +60,8 @@ impl<'env> ErrmapGen<'env> {
     }
 
     pub fn save_result(&self) {
-        self.output.to_file(&self.options.output_file);
+        // self.output.to_file(&self.options.output_file);
+        panic!("not support");
     }
 
     pub fn gen(&mut self) {

@@ -2,7 +2,7 @@
 // Copyright (c) The Move Contributors
 // SPDX-License-Identifier: Apache-2.0
 
-use std::cell::RefCell;
+use core::cell::RefCell;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum VMState {

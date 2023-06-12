@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use serde::{Deserialize, Serialize};
-use std::{
+use core::{
     cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd},
     convert::From,
     fmt::{self, Debug, Display},
@@ -152,7 +152,7 @@ impl<U> Display for GasQuantity<U> {
 
 impl<U> Debug for GasQuantity<U> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{} ({})", self.val, std::any::type_name::<U>())
+        write!(f, "{} ({})", self.val, core::any::type_name::<U>())
     }
 }
 

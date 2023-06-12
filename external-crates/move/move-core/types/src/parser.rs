@@ -9,7 +9,7 @@ use crate::{
     transaction_argument::TransactionArgument,
 };
 use anyhow::{bail, format_err, Result};
-use std::iter::Peekable;
+use core::iter::Peekable;
 
 #[derive(Eq, PartialEq, Debug)]
 enum Token {
@@ -265,7 +265,7 @@ impl<I: Iterator<Item = Token>> Parser<I> {
     ) -> Result<Vec<R>>
     where
         F: Fn(&mut Self) -> Result<R>,
-        R: std::fmt::Debug,
+        R: core::fmt::Debug,
     {
         let mut v = vec![];
         if !(self.peek() == Some(&end_token)) {
@@ -353,7 +353,7 @@ impl<I: Iterator<Item = Token>> Parser<I> {
 
 fn parse<F, T>(s: &str, f: F) -> Result<T>
 where
-    F: Fn(&mut Parser<std::vec::IntoIter<Token>>) -> Result<T>,
+    F: Fn(&mut Parser<alloc::vec::IntoIter<Token>>) -> Result<T>,
 {
     let mut tokens: Vec<_> = tokenize(s)?
         .into_iter()
@@ -408,7 +408,7 @@ pub fn parse_struct_tag(s: &str) -> Result<StructTag> {
 
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
+    use alloc::str::FromStr;
 
     use crate::{
         account_address::AccountAddress,
