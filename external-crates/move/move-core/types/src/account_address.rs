@@ -5,14 +5,12 @@
 use hex::FromHex;
 use serde::{de::Error as _, Deserialize, Deserializer, Serialize, Serializer};
 use core::{convert::TryFrom};
-use alloc::{fmt, str::FromStr};
+use alloc::{fmt, str::FromStr, string::{String, ToString}, vec::Vec, format};
 
 use crate::gas_algebra::AbstractMemorySize;
 
 /// A struct that represents an account address.
 #[derive(Ord, PartialOrd, Eq, PartialEq, Hash, Clone, Copy)]
-#[cfg_attr(any(test, feature = "fuzzing"), derive(proptest_derive::Arbitrary))]
-#[cfg_attr(any(test, feature = "fuzzing"), derive(arbitrary::Arbitrary))]
 pub struct AccountAddress([u8; AccountAddress::LENGTH]);
 
 impl AccountAddress {

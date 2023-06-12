@@ -11,21 +11,21 @@ edition = "2021"
 
 [dependencies]
 anyhow = { version = "1.0.52", default-features = false }
-hex = "0.4.3"
-once_cell = { version = "1.16", default-features = false, features = ["alloc"] }
-proptest = { version = "1.0.0", default-features = false, optional = true }
+hex = { version = "0.4.3", default-features = false, features = ["alloc"]}
+once_cell = { version = "1.16", default-features = false, features = ["alloc", "critical-section"] }
+proptest = { version = "1.0.0", default-features = false, features = ["alloc"], optional = true }
 proptest-derive = { version = "0.3.0", default-features = false, optional = true }
-rand = "0.8.3"
-ref-cast = "1.0.6"
+rand = { version = "0.8.3", default-features = false }
+ref-cast = { version = "1.0.6", default-features = false }
 serde = { version = "1.0.124", default-features = false, features = ["alloc", "derive", "rc"] }
-serde_bytes = "0.11.5"
-primitive-types = {version = "0.10.1", default-features = false, features = ["impl-serde"]}
-uint = "0.9.4"
+serde_bytes = { version = "0.11.5", default-features = false, features = ["alloc"] }
+primitive-types = {version = "0.10.1", default-features = false}
+uint = { version = "0.9.4", default-features = false }
 num = { version = "0.4.0", default-features = false, features = ["alloc"] }
-ethnum = "1.0.4"
+ethnum = { version = "1.0.4", default-features = false }
 arbitrary = { version = "1.1.7", features = [ "derive_arbitrary"], optional = true }
 
-bcs.workspace = true
+bcs = { git = "https://github.com/KeystoneHQ/bcs.git", tag = "0.1.1" }
 
 [dev-dependencies]
 proptest = "1.0.0"

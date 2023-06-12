@@ -8,6 +8,8 @@ use crate::{
     language_storage::{StructTag, TypeTag},
     transaction_argument::TransactionArgument,
 };
+use alloc::{string::{String, ToString}, vec::Vec, boxed::Box};
+use alloc::vec;
 use anyhow::{bail, format_err, Result};
 use core::iter::Peekable;
 
@@ -322,7 +324,7 @@ impl<I: Iterator<Item = Token>> Parser<I> {
                     vec![]
                 };
                 TypeTag::Struct(Box::new(StructTag {
-                    address: AccountAddress::from_hex_literal(&addr)?,
+                    address: AccountAddress::from_hex_literal(&addr).map_err(|err| { format_err!("{}", err)})?,
                     module: Identifier::new(module)?,
                     name: Identifier::new(name)?,
                     type_params: ty_args,
@@ -334,18 +336,18 @@ impl<I: Iterator<Item = Token>> Parser<I> {
 
     fn parse_transaction_argument(&mut self) -> Result<TransactionArgument> {
         Ok(match self.next()? {
-            Token::U8(s) => TransactionArgument::U8(s.replace('_', "").parse()?),
-            Token::U16(s) => TransactionArgument::U16(s.replace('_', "").parse()?),
-            Token::U32(s) => TransactionArgument::U32(s.replace('_', "").parse()?),
-            Token::U64(s) => TransactionArgument::U64(s.replace('_', "").parse()?),
-            Token::U128(s) => TransactionArgument::U128(s.replace('_', "").parse()?),
-            Token::U256(s) => TransactionArgument::U256(s.replace('_', "").parse()?),
+            Token::U8(s) => TransactionArgument::U8(s.replace('_', "").parse().map_err(|err| { format_err!("{}", err)})?),
+            Token::U16(s) => TransactionArgument::U16(s.replace('_', "").parse().map_err(|err| { format_err!("{}", err)})?),
+            Token::U32(s) => TransactionArgument::U32(s.replace('_', "").parse().map_err(|err| { format_err!("{}", err)})?),
+            Token::U64(s) => TransactionArgument::U64(s.replace('_', "").parse().map_err(|err| { format_err!("{}", err)})?),
+            Token::U128(s) => TransactionArgument::U128(s.replace('_', "").parse().map_err(|err| { format_err!("{}", err)})?),
+            Token::U256(s) => TransactionArgument::U256(s.replace('_', "").parse().map_err(|err| { format_err!("{}", err)})?),
             Token::True => TransactionArgument::Bool(true),
             Token::False => TransactionArgument::Bool(false),
             Token::Address(addr) => {
-                TransactionArgument::Address(AccountAddress::from_hex_literal(&addr)?)
+                TransactionArgument::Address(AccountAddress::from_hex_literal(&addr).map_err(|err| { format_err!("{}", err)})?)
             }
-            Token::Bytes(s) => TransactionArgument::U8Vector(hex::decode(s)?),
+            Token::Bytes(s) => TransactionArgument::U8Vector(hex::decode(s).map_err(|err| { format_err!("{}", err)})?),
             tok => bail!("unexpected token {:?}, expected transaction argument", tok),
         })
     }
@@ -408,7 +410,7 @@ pub fn parse_struct_tag(s: &str) -> Result<StructTag> {
 
 #[cfg(test)]
 mod tests {
-    use alloc::str::FromStr;
+    use alloc::{str::FromStr, vec, string::ToString, format};
 
     use crate::{
         account_address::AccountAddress,

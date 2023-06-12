@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::{account_address::AccountAddress, u256, value::MoveValue};
+use alloc::vec::Vec;
 use anyhow::{anyhow, Error, Result};
 use serde::{Deserialize, Serialize};
 use core::{convert::TryFrom, fmt};
@@ -121,6 +122,8 @@ impl VecBytes {
 #[cfg(test)]
 mod tests {
     use core::convert::{From, TryInto};
+
+    use alloc::vec;
 
     use crate::{
         account_address::AccountAddress, transaction_argument::TransactionArgument, u256::U256,

@@ -7,6 +7,7 @@ use crate::{
     identifier::{IdentStr, Identifier},
     language_storage::{StructTag, TypeTag},
 };
+use alloc::{borrow::ToOwned, vec::Vec, vec};
 use serde::de::DeserializeOwned;
 
 pub trait MoveStructType {

@@ -8,7 +8,8 @@ use crate::{
     language_storage::{StructTag, TypeTag},
     u256,
 };
-use anyhow::{anyhow, bail, Result as AResult};
+use alloc::{vec::Vec, boxed::Box, string::ToString};
+use anyhow::{anyhow, bail, Result as AResult, format_err};
 use serde::{
     de::Error as DeError,
     ser::{SerializeMap, SerializeSeq, SerializeStruct, SerializeTuple},
@@ -113,7 +114,7 @@ pub enum MoveTypeLayout {
 
 impl MoveValue {
     pub fn simple_deserialize(blob: &[u8], ty: &MoveTypeLayout) -> AResult<Self> {
-        Ok(bcs::from_bytes_seed(ty, blob)?)
+        Ok(bcs::from_bytes_seed(ty, blob).map_err(|err| { format_err!("{}", err)})?)
     }
 
     pub fn simple_serialize(&self) -> Option<Vec<u8>> {
@@ -196,7 +197,7 @@ impl MoveStruct {
     }
 
     pub fn simple_deserialize(blob: &[u8], ty: &MoveStructLayout) -> AResult<Self> {
-        Ok(bcs::from_bytes_seed(ty, blob)?)
+        Ok(bcs::from_bytes_seed(ty, blob).map_err(|err| { format_err!("{}", err)})?)
     }
 
     pub fn decorate(self, layout: &MoveStructLayout) -> Self {
@@ -503,13 +504,13 @@ impl serde::Serialize for MoveStruct {
 }
 
 impl fmt::Display for MoveFieldLayout {
-    fn fmt(&self, f: &mut fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> alloc::fmt::Result {
         write!(f, "{}: {}", self.name, self.layout)
     }
 }
 
 impl fmt::Display for MoveTypeLayout {
-    fn fmt(&self, f: &mut fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> alloc::fmt::Result {
         use MoveTypeLayout::*;
         match self {
             Bool => write!(f, "bool"),
@@ -528,7 +529,7 @@ impl fmt::Display for MoveTypeLayout {
 }
 
 impl fmt::Display for MoveStructLayout {
-    fn fmt(&self, f: &mut fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> alloc::fmt::Result {
         write!(f, "{{ ")?;
         match self {
             Self::Runtime(layouts) => {

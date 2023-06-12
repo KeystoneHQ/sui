@@ -28,12 +28,10 @@
 //! * do cross-module lookups while executing transactions
 
 use crate::gas_algebra::AbstractMemorySize;
-use anyhow::{bail, Result};
-#[cfg(any(test, feature = "fuzzing"))]
-use proptest::prelude::*;
+use anyhow::{bail, Result, format_err};
 use ref_cast::RefCast;
 use serde::{Deserialize, Serialize};
-use alloc::{borrow::Borrow, fmt, str::FromStr, borrow::ToOwned};
+use alloc::{borrow::Borrow, fmt, str::FromStr, borrow::ToOwned, vec::Vec, string::String, boxed::Box};
 use core::ops::Deref;
 
 /// Return true if this character can appear in a Move identifier.
@@ -91,7 +89,6 @@ pub(crate) static ALLOWED_NO_SELF_IDENTIFIERS: &str =
 ///
 /// For more details, see the module level documentation.
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
-#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 pub struct Identifier(Box<str>);
 // An identifier cannot be mutated so use Box<str> instead of String -- it is 1 word smaller.
 
@@ -119,7 +116,7 @@ impl Identifier {
 
     /// Converts a vector of bytes to an `Identifier`.
     pub fn from_utf8(vec: Vec<u8>) -> Result<Self> {
-        let s = String::from_utf8(vec)?;
+        let s = String::from_utf8(vec).map_err(|err| { format_err!("{}", err) })?;
         Self::new(s)
     }
 
@@ -246,21 +243,6 @@ impl ToOwned for IdentStr {
 impl fmt::Display for IdentStr {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", &self.0)
-    }
-}
-
-#[cfg(any(test, feature = "fuzzing"))]
-impl Arbitrary for Identifier {
-    type Parameters = ();
-    type Strategy = BoxedStrategy<Self>;
-
-    fn arbitrary_with((): ()) -> Self::Strategy {
-        ALLOWED_NO_SELF_IDENTIFIERS
-            .prop_map(|s| {
-                // Identifier::new will verify that generated identifiers are correct.
-                Identifier::new(s).unwrap()
-            })
-            .boxed()
     }
 }
 

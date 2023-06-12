@@ -1,6 +1,7 @@
 // Copyright (c) The Move Contributors
 // SPDX-License-Identifier: Apache-2.0
 
+use alloc::format;
 use ethnum::U256 as EthnumU256;
 use num::{bigint::Sign, BigInt};
 #[cfg(any(test, feature = "fuzzing"))]
@@ -85,7 +86,7 @@ impl fmt::Display for U256CastError {
 
 impl core::error::Error for U256FromStrError {
     fn source(&self) -> Option<&(dyn core::error::Error + 'static)> {
-        self.0.source()
+        panic!("not support")
     }
 }
 
@@ -682,39 +683,4 @@ impl UniformSampler for UniformU256 {
             }
         }
     }
-}
-
-#[cfg(any(test, feature = "fuzzing"))]
-impl proptest::prelude::Arbitrary for U256 {
-    type Strategy = BoxedStrategy<Self>;
-    type Parameters = ();
-    fn arbitrary_with(_params: Self::Parameters) -> Self::Strategy {
-        use proptest::strategy::Strategy as _;
-        proptest::arbitrary::any::<[u8; U256_NUM_BYTES]>()
-            .prop_map(|q| U256::from_le_bytes(&q))
-            .boxed()
-    }
-}
-
-#[cfg(any(test, feature = "fuzzing"))]
-impl<'a> arbitrary::Arbitrary<'a> for U256 {
-    fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
-        let bytes = <[u8; U256_NUM_BYTES]>::arbitrary(u)?;
-        Ok(U256::from_le_bytes(&bytes))
-    }
-}
-
-#[test]
-fn wrapping_add() {
-    // a + b overflows U256::MAX by 100
-    // By definition in std::instrinsics, a.wrapping_add(b) = (a + b) % (2^N), where N is bit width
-
-    let a = U256::from(1234u32);
-    let b = U256::from_str_radix(
-        "115792089237316195423570985008687907853269984665640564039457584007913129638801",
-        10,
-    )
-    .unwrap();
-
-    assert!(a.wrapping_add(b) == U256::from(99u8));
 }

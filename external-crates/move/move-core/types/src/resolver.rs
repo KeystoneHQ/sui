@@ -8,7 +8,7 @@ use crate::{
     language_storage::{ModuleId, StructTag},
 };
 use core::fmt::Debug;
-use alloc::sync::Arc;
+use alloc::{sync::Arc, vec::Vec};
 
 /// Traits for resolving Move modules and resources from persistent storage
 

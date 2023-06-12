@@ -9,12 +9,11 @@ use crate::{
     parser::{parse_struct_tag, parse_type_tag},
 };
 use once_cell::sync::Lazy;
-#[cfg(any(test, feature = "fuzzing"))]
-use proptest_derive::Arbitrary;
 use serde::{Deserialize, Serialize};
 use alloc::{
     fmt::{Display, Formatter},
-    str::FromStr,
+    str::FromStr, boxed::Box, string::String, borrow::ToOwned, format, vec::Vec,
+    vec,
 };
 
 pub const CODE_TAG: u8 = 0;
@@ -231,8 +230,6 @@ impl ResourceKey {
 /// Represents the initial key into global storage where we first index by the address, and then
 /// the struct tag
 #[derive(Serialize, Deserialize, Debug, PartialEq, Hash, Eq, Clone, PartialOrd, Ord)]
-#[cfg_attr(any(test, feature = "fuzzing"), derive(Arbitrary))]
-#[cfg_attr(any(test, feature = "fuzzing"), proptest(no_params))]
 pub struct ModuleId {
     address: AccountAddress,
     name: Identifier,
@@ -316,7 +313,7 @@ impl Display for TypeTag {
 }
 
 impl Display for ResourceKey {
-    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter) -> core::fmt::Result {
         write!(f, "0x{}/{}", self.address.short_str_lossless(), self.type_)
     }
 }
@@ -329,11 +326,13 @@ impl From<StructTag> for TypeTag {
 
 #[cfg(test)]
 mod tests {
+    use alloc::{boxed::Box, vec};
+
     use super::TypeTag;
     use crate::{
         account_address::AccountAddress, identifier::Identifier, language_storage::StructTag,
     };
-    use std::mem;
+    use core::mem;
 
     #[test]
     fn test_type_tag_serde() {

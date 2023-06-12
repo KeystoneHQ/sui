@@ -6,7 +6,7 @@ use crate::language_storage::ModuleId;
 use anyhow::{bail, Result};
 use serde::{Deserialize, Serialize};
 use alloc::{
-    collections::BTreeMap,
+    collections::BTreeMap, string::String, format,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
