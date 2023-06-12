@@ -299,6 +299,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "atomic-polyfill"
+version = "1.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c314e70d181aa6053b26e3f7fbf86d1dfff84f816a6175b967666b3506ef7289"
+dependencies = [
+ "critical-section",
+]
+
+[[package]]
 name = "atomic-waker"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -354,6 +363,16 @@ dependencies = [
  "lalrpop",
  "lalrpop-util",
  "regex",
+]
+
+[[package]]
+name = "bcs"
+version = "0.1.4"
+source = "git+https://github.com/KeystoneHQ/bcs.git?tag=0.1.1#99bd6ac3de60ca7b14b36a93d75a8ef0c695bd8f"
+dependencies = [
+ "core2",
+ "serde 1.0.159",
+ "thiserror-core",
 ]
 
 [[package]]
@@ -834,6 +853,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e496a50fda8aacccc86d7529e2c1e0892dbd0f898a6b5645b5561b89c3210efa"
 
 [[package]]
+name = "core2"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "239fa3ae9b63c2dc74bd3fa852d4792b8b305ae64eeede946265b6af62f1fff3"
+dependencies = [
+ "memchr",
+]
+
+[[package]]
 name = "cpufeatures"
 version = "0.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -893,6 +921,12 @@ dependencies = [
  "cast",
  "itertools",
 ]
+
+[[package]]
+name = "critical-section"
+version = "1.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6548a0ad5d2549e111e1f6a11a6c2e2d00ce6a3dafe22948d67c2b443f775e52"
 
 [[package]]
 name = "crossbeam"
@@ -1234,7 +1268,7 @@ name = "df-cli"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bcs",
+ "bcs 0.1.5",
  "clap 3.2.23",
  "datatest-stable",
  "diem-framework-natives",
@@ -1251,7 +1285,7 @@ version = "0.0.3"
 dependencies = [
  "aes-gcm",
  "anyhow",
- "bcs",
+ "bcs 0.1.5",
  "bitvec 0.19.6",
  "byteorder",
  "bytes",
@@ -2768,7 +2802,7 @@ name = "move-abigen"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bcs",
+ "bcs 0.1.5",
  "codespan-reporting",
  "datatest-stable",
  "heck 0.3.3",
@@ -2814,7 +2848,7 @@ name = "move-async-vm"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bcs",
+ "bcs 0.1.5",
  "better_any",
  "datatest-stable",
  "itertools",
@@ -2857,7 +2891,7 @@ name = "move-bytecode-source-map"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bcs",
+ "bcs 0.1.5",
  "move-binary-format",
  "move-command-line-common",
  "move-core-types",
@@ -2913,7 +2947,7 @@ name = "move-cli"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bcs",
+ "bcs 0.1.5",
  "clap 3.2.23",
  "codespan-reporting",
  "colored",
@@ -2977,7 +3011,7 @@ name = "move-compiler"
 version = "0.0.1"
 dependencies = [
  "anyhow",
- "bcs",
+ "bcs 0.1.5",
  "clap 3.2.23",
  "codespan-reporting",
  "datatest-stable",
@@ -3016,7 +3050,7 @@ version = "0.0.4"
 dependencies = [
  "anyhow",
  "arbitrary",
- "bcs",
+ "bcs 0.1.4",
  "ethnum",
  "hex",
  "num 0.4.0",
@@ -3038,7 +3072,7 @@ name = "move-coverage"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bcs",
+ "bcs 0.1.5",
  "clap 3.2.23",
  "codespan",
  "colored",
@@ -3095,7 +3129,7 @@ name = "move-errmapgen"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bcs",
+ "bcs 0.1.5",
  "codespan-reporting",
  "datatest-stable",
  "log",
@@ -3122,7 +3156,7 @@ dependencies = [
 name = "move-explain"
 version = "0.1.0"
 dependencies = [
- "bcs",
+ "bcs 0.1.5",
  "clap 3.2.23",
  "move-command-line-common",
  "move-core-types",
@@ -3133,7 +3167,7 @@ name = "move-ir-compiler"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bcs",
+ "bcs 0.1.5",
  "clap 3.2.23",
  "move-binary-format",
  "move-bytecode-source-map",
@@ -3229,7 +3263,7 @@ name = "move-package"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bcs",
+ "bcs 0.1.5",
  "clap 3.2.23",
  "colored",
  "datatest-stable",
@@ -3357,7 +3391,7 @@ name = "move-resource-viewer"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bcs",
+ "bcs 0.1.5",
  "hex",
  "move-binary-format",
  "move-bytecode-utils",
@@ -3456,7 +3490,7 @@ name = "move-table-extension"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bcs",
+ "bcs 0.1.5",
  "better_any",
  "move-binary-format",
  "move-cli",
@@ -3669,7 +3703,7 @@ dependencies = [
 name = "move-vm-types"
 version = "0.1.0"
 dependencies = [
- "bcs",
+ "bcs 0.1.5",
  "move-binary-format",
  "move-core-types",
  "once_cell",
@@ -3875,6 +3909,10 @@ name = "once_cell"
 version = "1.17.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b7e5500299e16ebb147ae15a00a942af264cf3688f47923b8fc2cd5858f23ad3"
+dependencies = [
+ "atomic-polyfill",
+ "critical-section",
+]
 
 [[package]]
 name = "oorandom"
@@ -4370,7 +4408,6 @@ dependencies = [
  "fixed-hash",
  "impl-codec 0.5.1",
  "impl-rlp",
- "impl-serde",
  "scale-info",
  "uint",
 ]
@@ -5657,6 +5694,26 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "978c9a314bd8dc99be594bc3c175faaa9794be04a5a5e153caba6915336cebac"
 dependencies = [
  "thiserror-impl",
+]
+
+[[package]]
+name = "thiserror-core"
+version = "1.0.38"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0d97345f6437bb2004cd58819d8a9ef8e36cdd7661c2abc4bbde0a7c40d9f497"
+dependencies = [
+ "thiserror-core-impl",
+]
+
+[[package]]
+name = "thiserror-core-impl"
+version = "1.0.38"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "10ac1c5050e43014d16b2f94d0d2ce79e65ffdd8b38d8048f9c8f6a8a6da62ac"
+dependencies = [
+ "proc-macro2 1.0.56",
+ "quote 1.0.26",
+ "syn 1.0.109",
 ]
 
 [[package]]

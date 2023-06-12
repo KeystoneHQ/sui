@@ -7,5 +7,3 @@ publish = false
 edition = "2021"
 
 [dependencies]
-serde_yaml = "0.8.26"
-workspace-hack = { version = "0.1", path = "../workspace-hack" }

@@ -647,6 +647,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2ce4f10ea3abcd6617873bae9f91d1c5332b4a778bd9ce34d0cd517474c1de82"
 
 [[package]]
+name = "atomic-polyfill"
+version = "1.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c314e70d181aa6053b26e3f7fbf86d1dfff84f816a6175b967666b3506ef7289"
+dependencies = [
+ "critical-section",
+]
+
+[[package]]
 name = "atomicwrites"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1152,6 +1161,16 @@ dependencies = [
 name = "bcs"
 version = "0.1.4"
 source = "git+https://github.com/KeystoneHQ/bcs.git?tag=0.1.0#1ea6f39efe1cfdc38fe2eeb4acb9a92a9aed1a2d"
+dependencies = [
+ "core2 0.3.3",
+ "serde 1.0.152",
+ "thiserror-core",
+]
+
+[[package]]
+name = "bcs"
+version = "0.1.4"
+source = "git+https://github.com/KeystoneHQ/bcs.git?tag=0.1.1#99bd6ac3de60ca7b14b36a93d75a8ef0c695bd8f"
 dependencies = [
  "core2 0.3.3",
  "serde 1.0.152",
@@ -2084,6 +2103,12 @@ dependencies = [
  "cast",
  "itertools",
 ]
+
+[[package]]
+name = "critical-section"
+version = "1.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6548a0ad5d2549e111e1f6a11a6c2e2d00ce6a3dafe22948d67c2b443f775e52"
 
 [[package]]
 name = "crossbeam-channel"
@@ -5125,7 +5150,7 @@ version = "0.0.4"
 dependencies = [
  "anyhow",
  "arbitrary",
- "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "bcs 0.1.4 (git+https://github.com/KeystoneHQ/bcs.git?tag=0.1.1)",
  "ethnum",
  "hex",
  "num",
@@ -6620,6 +6645,10 @@ name = "once_cell"
 version = "1.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6f61fba1741ea2b3d6a1e3178721804bb716a68a6aeba1149b5d52e3d464ea66"
+dependencies = [
+ "atomic-polyfill",
+ "critical-section",
+]
 
 [[package]]
 name = "oorandom"
@@ -9570,10 +9599,6 @@ dependencies = [
 [[package]]
 name = "sui-enum-compat-util"
 version = "0.1.0"
-dependencies = [
- "serde_yaml",
- "workspace-hack",
-]
 
 [[package]]
 name = "sui-faucet"
@@ -9877,7 +9902,6 @@ dependencies = [
  "once_cell",
  "sui-proc-macros",
  "tracing",
- "workspace-hack",
 ]
 
 [[package]]
@@ -10091,7 +10115,6 @@ dependencies = [
  "quote 1.0.26",
  "sui-enum-compat-util",
  "syn 2.0.16",
- "workspace-hack",
 ]
 
 [[package]]
@@ -10722,7 +10745,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "base64ct",
- "bcs 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "bcs 0.1.4 (git+https://github.com/KeystoneHQ/bcs.git?tag=0.1.1)",
  "bincode",
  "bs58",
  "byteorder",
@@ -10736,7 +10759,9 @@ dependencies = [
  "once_cell",
  "proptest",
  "proptest-derive",
+ "ref-cast",
  "serde 1.0.152",
+ "serde_bytes",
  "serde_json",
  "serde_with",
  "serde_yaml",
