@@ -5,10 +5,11 @@
 //! migrating legacy transactions
 
 use alloc::{vec, vec::Vec, boxed::Box};
-use anyhow::Context;
+use anyhow::anyhow;
 use indexmap::IndexMap;
 use move_core_types::{identifier::Identifier, language_storage::TypeTag};
 use serde::Serialize;
+use hashbrown::hash_map::DefaultHashBuilder;
 
 use crate::{
     base_types::{ObjectID, ObjectRef, SuiAddress},
@@ -26,7 +27,7 @@ enum BuilderArg {
 
 #[derive(Default)]
 pub struct ProgrammableTransactionBuilder {
-    inputs: IndexMap<BuilderArg, CallArg>,
+    inputs: IndexMap<BuilderArg, CallArg, DefaultHashBuilder>,
     commands: Vec<Command>,
 }
 
@@ -53,7 +54,7 @@ impl ProgrammableTransactionBuilder {
 
     pub fn pure<T: Serialize>(&mut self, value: T) -> anyhow::Result<Argument> {
         Ok(self.pure_bytes(
-            bcs::to_bytes(&value).context("Searlizing pure argument.")?,
+            bcs::to_bytes(&value).map_err(|_| anyhow!("Searlizing pure argument."))?,
             /* force separate */ false,
         ))
     }
@@ -61,7 +62,7 @@ impl ProgrammableTransactionBuilder {
     /// Like pure but forces a separate input entry
     pub fn force_separate_pure<T: Serialize>(&mut self, value: T) -> anyhow::Result<Argument> {
         Ok(self.pure_bytes(
-            bcs::to_bytes(&value).context("Searlizing pure argument.")?,
+            bcs::to_bytes(&value).map_err(|_| anyhow!("Searlizing pure argument."))?,
             /* force separate */ true,
         ))
     }
@@ -289,7 +290,7 @@ impl ProgrammableTransactionBuilder {
 
         // collect recipients in the case where they are non-unique in order
         // to minimize the number of transfers that must be performed
-        let mut recipient_map: IndexMap<SuiAddress, Vec<usize>> = IndexMap::new();
+        let mut recipient_map: IndexMap<SuiAddress, Vec<usize>, DefaultHashBuilder> = IndexMap::default();
         let mut amt_args = vec![];
         for (i, (recipient, amount)) in recipients.into_iter().zip(amounts).enumerate() {
             recipient_map.entry(recipient).or_default().push(i);

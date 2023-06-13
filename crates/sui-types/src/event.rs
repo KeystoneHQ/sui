@@ -7,6 +7,7 @@ use alloc::str::FromStr;
 use alloc::string::String;
 use alloc::vec::Vec;
 use anyhow::ensure;
+use anyhow::anyhow;
 use move_core_types::account_address::AccountAddress;
 use move_core_types::identifier::IdentStr;
 use move_core_types::identifier::Identifier;
@@ -68,7 +69,7 @@ impl TryFrom<String> for EventID {
         ensure!(values.len() == 2, "Malformed EventID : {value}");
         Ok((
             TransactionDigest::from_str(values[0])?,
-            u64::from_str(values[1])?,
+            u64::from_str(values[1]).map_err(|e| anyhow!("{}", e))?,
         )
             .into())
     }

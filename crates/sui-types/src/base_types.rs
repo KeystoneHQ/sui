@@ -608,7 +608,7 @@ impl ObjectID {
         if carry > 0 {
             return Err(anyhow!("Increment will cause overflow"));
         }
-        ObjectID::try_from(curr_vec).map_err(|w| w.into())
+        ObjectID::try_from(curr_vec).map_err(|w| anyhow!("{}", w))
     }
 
     /// Increment the ObjectID by one, assuming the ObjectID hex is a number represented as an array of bytes
@@ -629,7 +629,7 @@ impl ObjectID {
                 break;
             };
         }
-        ObjectID::try_from(prev_val.clone()).map_err(|w| w.into())
+        ObjectID::try_from(prev_val.clone()).map_err(|w| anyhow!("{}", w))
     }
 
     /// Create `count` object IDs starting with one at `offset`
