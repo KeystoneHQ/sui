@@ -17,7 +17,7 @@ thiserror = { version = "1.0", package = "thiserror-core", default-features = fa
 serde_json = { version = "1.0.88", default-features = false, features = ["alloc"] }
 serde_with = { version = "2.1.0", default-features = false, features = ["alloc", "macros"] }
 strum_macros = "^0.24"
-indexmap = "1.9.2"
+indexmap = "^1.9.1"
 base64ct = { version = "1.6.0", default-features = false, features = ["alloc"] }
 hex = { version = "0.4.3", default-features = false, features = ["alloc"] }
 bs58 = { version = "0.4.0", default-features = false, features = ["alloc"] }
