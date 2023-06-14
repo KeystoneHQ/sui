@@ -34,6 +34,7 @@ pub mod sui_protocol_config;
 pub mod sui_serde;
 
 pub mod transaction;
+pub mod message;
 
 /// 0x1-- account address where Move stdlib modules are stored
 /// Same as the ObjectID
