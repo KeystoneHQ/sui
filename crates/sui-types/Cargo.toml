@@ -39,6 +39,10 @@ serde_yaml = "0.8.26"
 [features]
 test-utils = []
 fuzzing = ["move-core-types/fuzzing"]
+keystone-simulator = [
+    "once_cell/default"
+]
+
 
 [profile.dev]
 # Enable unstable features on nightly
